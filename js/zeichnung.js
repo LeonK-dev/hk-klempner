@@ -5,6 +5,7 @@ import { verlauf, rahmen } from './kern/profil.js';
 const NS = 'http://www.w3.org/2000/svg';
 const RAND = 48; // Platz für die Maßzahlen
 const RAND_SCHMAL = 30;
+const RAND_TIPPT = 24;
 const WINKEL_AB = 34; // px, kürzere Schenkel bekommen keine Winkelzahl an die Ecke
 const MARKE_ABSTAND = 18; // px vom Blechende bis zur Mitte von A bzw. E
 const SPALT = 6; // so weit steht ein zugedrückter Umschlag in der Zeichnung auf, in px
@@ -68,8 +69,14 @@ export function zeichne(svg, profil, aktiv = -1) {
   // Am Handy bleibt die Zeichnung flach, damit unter ihr noch Platz zum Tippen ist.
   // Am PC steht die Zeichnung neben der Eingabe und darf hoch sein, auch wenn die Spalte schmal ist.
   const schmal = b < 480 && !window.matchMedia('(min-width: 880px)').matches;
-  const h = Math.round(schmal ? Math.min(Math.max(b * 0.5, 160), 220) : Math.min(Math.max(b * 0.7, 260), 460));
-  const rand = schmal ? RAND_SCHMAL : RAND;
+  // Solange am Handy die Tastatur offen ist, noch flacher: Darunter muss das Eingabefeld Platz haben.
+  const tippt = schmal && document.body.classList.contains('tastatur');
+  const h = Math.round(
+    tippt ? Math.min(Math.max(b * 0.36, 110), 140)
+      : schmal ? Math.min(Math.max(b * 0.5, 160), 220)
+        : Math.min(Math.max(b * 0.7, 260), 460),
+  );
+  const rand = tippt ? RAND_TIPPT : schmal ? RAND_SCHMAL : RAND;
   svg.setAttribute('viewBox', `0 0 ${b} ${h}`);
   svg.replaceChildren();
 

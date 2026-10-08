@@ -4,6 +4,8 @@
 // Aufbau wie in profil.js beschrieben. u = Umschlag zugedrückt, o = Umschlag offen / Wasserfalz,
 // t = Tropfkante.
 
+import { mitAnker } from './profil.js';
+
 const u = (l = 10) => ({ l, art: 'umschlag_zu' });
 const o = (l = 15) => ({ l, art: 'umschlag_offen' });
 const t = (l = 20) => ({ l, art: 'tropfkante' });
@@ -140,8 +142,10 @@ export const VORLAGEN = [
   },
 ];
 
+// In den Vorlagen steht der Einfachheit halber die Richtung von Schenkel 1 (start).
+// Fest ist danach der längste Schenkel, also meist die Fläche, an der man sich orientiert.
 export function ausVorlage(v) {
-  return {
+  return mitAnker({
     name: v.name,
     vorlage: v.id,
     ueberdeckung: v.ueberdeckung,
@@ -149,5 +153,5 @@ export function ausVorlage(v) {
     sicht: v.sicht,
     schenkel: v.schenkel.map((x) => ({ ...x })),
     kantungen: v.kantungen.map((x) => ({ ...x })),
-  };
+  });
 }

@@ -1,8 +1,9 @@
 // Tests für Profil und Vorlagen. Laufen im Browser (tests/index.html) und mit Node (tests/lauf.mjs).
 
 import {
-  abschlussAn, ausgerichtet, bewertung, freiesProfil, gedreht, gespiegelt, lage, mitAbschluss,
-  mitSchenkel, normalisiert, ohneSchenkel, pruefe, schneidetSich, teiler, verlauf, zahl, zuschnitt,
+  abschlussAn, ausgerichtet, bewertung, freiesProfil, gedreht, geklappt, gespiegelt, mitAbschluss,
+  mitFest, mitNeigung, mitSchenkel, neigung, normalisiert, ohneSchenkel, pruefe, richtung,
+  schneidetSich, teiler, verlauf, zahl, zuschnitt,
 } from '../js/kern/profil.js';
 import { VORLAGEN, ausVorlage } from '../js/kern/vorlagen.js';
 import { gleich, test } from './hilfe.js';
@@ -164,28 +165,103 @@ test('Bewertung: keine Empfehlung, wenn dafür zu viel gekürzt werden müsste',
 
 // --- Lage des ersten Schenkels ---
 
-test('Lage liegt immer zwischen -180 und 180 Grad', () => {
-  gleich(lage({ start: 0 }), 0);
-  gleich(lage({ start: 270 }), -90);
-  gleich(lage({ start: 225 }), -135);
-  gleich(lage({ start: -60 }), -60);
-  gleich(lage({ start: 180 }), 180);
-  gleich(lage({ start: 395 }), 35);
+const punkteGleich = (a, b) => {
+  gleich(a.length, b.length, 'Anzahl Punkte');
+  a.forEach((p, i) => {
+    gleich(p.x, b[i].x, `x von Punkt ${i}`);
+    gleich(p.y, b[i].y, `y von Punkt ${i}`);
+  });
+};
+
+test('Vorlagen: fest ist der längste Schenkel', () => {
+  const p = vorlage('traufblech');
+  gleich(p.fest, 2);
+  gleich(richtung(p, 2), 150);
+  gleich(neigung(p), -30, 'Auflage fällt nach rechts');
+  gleich(vorlage('mauerabdeckung').fest, 2);
+  gleich(neigung(vorlage('mauerabdeckung')), 0);
 });
 
-test('Ausrichten stellt die Zeichnung nicht auf den Kopf', () => {
-  gleich(ausgerichtet(vorlage('traufblech'), 'senkrecht').start, -90);
-  gleich(ausgerichtet(vorlage('traufblech'), 'waagerecht').start, 0);
-  gleich(ausgerichtet(vorlage('ortgangblech'), 'waagerecht').start, 180);
-  gleich(ausgerichtet(vorlage('winkel'), 'senkrecht').start, 90);
+test('Neigung liegt immer zwischen -90 und 90 Grad', () => {
+  const p = freiesProfil();
+  gleich(neigung({ ...p, lage: 0 }), 0);
+  gleich(neigung({ ...p, lage: 270 }), 90);
+  gleich(neigung({ ...p, lage: 225 }), 45);
+  gleich(neigung({ ...p, lage: -60 }), -60);
+  gleich(neigung({ ...p, lage: 150 }), -30);
+  gleich(neigung({ ...p, lage: 183 }), 3);
+});
+
+test('Neigung einstellen stellt die Zeichnung nicht auf den Kopf', () => {
+  const p = vorlage('traufblech'); // Auflage läuft nach links oben, Richtung 150
+  gleich(mitNeigung(p, -20).lage, 160);
+  gleich(neigung(mitNeigung(p, -20)), -20);
+  gleich(ausgerichtet(p, 'waagerecht').lage, 180);
+  gleich(ausgerichtet(p, 'senkrecht').lage, 90);
+  gleich(mitNeigung(freiesProfil(), 3).lage, 3);
 });
 
 test('Freies Profil beginnt mit einem waagerechten Schenkel', () => {
   const p = freiesProfil();
   gleich(p.schenkel.length, 1);
   gleich(p.kantungen.length, 0);
-  gleich(lage(p), 0);
+  gleich(neigung(p), 0);
   gleich(pruefe(p).length, 0);
+});
+
+test('Schenkel bei A anfügen und umklappen lässt den festen Schenkel stehen', () => {
+  let p = mitSchenkel(mitNeigung(freiesProfil(), 3), 'anfang');
+  gleich(p.fest, 1, 'der ursprüngliche Schenkel bleibt fest');
+  gleich(richtung(p, 1), 3);
+  gleich(richtung(p, 0), -87, 'neuer Schenkel steht zuerst nach oben ab');
+  p = geklappt(p, 0);
+  gleich(richtung(p, 1), 3, 'fester Schenkel unverändert');
+  gleich(richtung(p, 0), 93, 'neuer Schenkel hängt jetzt nach unten');
+  gleich(neigung(p), 3);
+});
+
+test('Winkel vor dem festen Schenkel ändern bewegt nur den Teil davor', () => {
+  const p = vorlage('traufblech');
+  p.kantungen[1].w = 100;
+  gleich(richtung(p, 2), 150, 'Auflage bleibt');
+  gleich(richtung(p, 1), 70, 'Blende dreht sich');
+  p.kantungen[1].w = NaN; // beim Tippen
+  gleich(richtung(p, 2), 150, 'auch bei ungültiger Eingabe');
+});
+
+test('Anderen Schenkel festhalten ändert die Zeichnung nicht', () => {
+  const p = vorlage('mauerabdeckung');
+  const q = mitFest(p, 0);
+  gleich(q.fest, 0);
+  punkteGleich(verlauf(q, 0).punkte, verlauf(p, 0).punkte);
+  gleich(richtung(geklappt(q, 1), 0), richtung(q, 0), 'jetzt bleibt Schenkel 1 beim Umklappen stehen');
+});
+
+test('Schenkel entfernen: der feste bleibt, sonst übernimmt der Nachbar', () => {
+  const p = vorlage('traufblech'); // fest = 2
+  let q = ohneSchenkel(p, 0);
+  gleich(q.fest, 1);
+  gleich(richtung(q, 1), 150);
+  q = ohneSchenkel(p, 2); // der feste selbst
+  gleich(q.fest, 1);
+  gleich(richtung(q, 1), 90, 'Blende behält ihre Richtung');
+  gleich(q.schenkel.length, 2);
+});
+
+test('Ältere Profile mit start werden ohne Änderung der Zeichnung übernommen', () => {
+  const alt = {
+    name: 'alt', start: -90, sicht: -1,
+    schenkel: [{ l: 10, art: 'umschlag_zu' }, { l: 70 }, { l: 170 }],
+    kantungen: [{ w: 0, r: 1 }, { w: 120, r: 1 }],
+  };
+  const neu = normalisiert(alt);
+  gleich(neu.start, undefined);
+  gleich(neu.fest, 2);
+  gleich(neu.lage, 150);
+  punkteGleich(verlauf(neu, 0).punkte, verlauf(alt, 0).punkte);
+  const nochmal = normalisiert(JSON.parse(JSON.stringify(neu)));
+  gleich(nochmal.fest, 2);
+  gleich(nochmal.lage, 150);
 });
 
 // --- Prüfung ---

@@ -1,8 +1,9 @@
 // Eingabemaske für ein Profil: Vorlage wählen, Maße tippen, Schnitt und Zuschnitt sehen.
 
 import {
-  ABSCHLUESSE, abschlussAn, ausgerichtet, bewertung, freiesProfil, gedreht, gespiegelt, kopie, lage,
-  mitAbschluss, mitSchenkel, normalisiert, ohneSchenkel, pruefe, zahl, zuschnitt,
+  ABSCHLUESSE, abschlussAn, ausgerichtet, bewertung, festVon, freiesProfil, gedreht, geklappt,
+  gespiegelt, kopie, mitAbschluss, mitFest, mitNeigung, mitSchenkel, neigung, normalisiert,
+  ohneSchenkel, pruefe, zahl, zuschnitt,
 } from './kern/profil.js';
 import { VORLAGEN, ausVorlage } from './kern/vorlagen.js';
 import { erstelleAuftrag } from './auftrag-ansicht.js';
@@ -41,6 +42,7 @@ let breite = BREITEN.includes(lies(SPEICHER.breite, 1000)) ? lies(SPEICHER.breit
 let aktiv = -1;
 
 const KREUZ = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const SCHLOSS = '<svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
 
 // --- Anzeige ---
 
@@ -89,14 +91,18 @@ function zeigeBreiten() {
 
 function zeigeSchenkel() {
   const n = profil.schenkel.length;
+  const fest = festVon(profil);
   let html = '';
   profil.schenkel.forEach((s, i) => {
     const art = s.art ? `<span class="art">${ABSCHLUESSE[s.art].name}</span>` : '';
+    const istFest = i === fest;
     html += `<div class="schenkel" data-i="${i}">
       <span class="nr">${i + 1}</span>
       <label class="feld"><span class="sr">Länge Schenkel ${i + 1} in mm</span>
         <input type="text" inputmode="decimal" autocomplete="off" data-feld="l" value="${mm(s.l)}"><span class="einheit">mm</span></label>
       ${art}
+      <button type="button" class="schloss${istFest ? ' an' : ''}" data-aktion="fest" aria-pressed="${istFest}"
+        aria-label="Schenkel ${i + 1} in der Zeichnung festhalten" title="In der Zeichnung festhalten">${SCHLOSS}</button>
       <button type="button" class="weg" data-aktion="entfernen" aria-label="Schenkel ${i + 1} entfernen"${n <= 1 ? ' disabled' : ''}>${KREUZ}</button>
     </div>`;
     const k = profil.kantungen[i];
@@ -193,7 +199,9 @@ function zeigeErgebnis() {
 
 function zeigeAlles() {
   $('name').value = profil.name;
-  $('lage').value = mm(lage(profil));
+  $('lage').value = mm(neigung(profil));
+  $('lage').closest('.feld').classList.remove('falsch');
+  $('fest-titel').textContent = `Schenkel ${festVon(profil) + 1} steht fest`;
   zeigeVorlagen();
   zeigeAbschluesse();
   zeigeBreiten();
@@ -225,7 +233,7 @@ $('lage').addEventListener('input', (e) => {
   const wert = zahl(e.target.value);
   e.target.closest('.feld').classList.toggle('falsch', Number.isNaN(wert));
   if (Number.isNaN(wert)) return;
-  profil.start = wert;
+  profil = mitNeigung(profil, wert);
   zeigeErgebnis();
 });
 
@@ -263,8 +271,10 @@ $('schenkel').addEventListener('click', (e) => {
   if (knopf.dataset.aktion === 'entfernen') {
     setze(ohneSchenkel(profil, i));
   } else if (knopf.dataset.aktion === 'klappen') {
-    profil.kantungen[i].r = -profil.kantungen[i].r;
+    profil = geklappt(profil, i);
     zeigeErgebnis();
+  } else if (knopf.dataset.aktion === 'fest') {
+    setze(mitFest(profil, i));
   }
 });
 
@@ -395,6 +405,24 @@ document.addEventListener('click', (e) => {
   const knopf = e.target.closest('[data-ansicht]');
   if (knopf) zeigeAnsicht(knopf.dataset.ansicht);
 });
+
+// iPhone und iPad: Bei offener Tastatur verschiebt Safari den sichtbaren Ausschnitt, ohne dass
+// die Seite gescrollt wird. Die oben klebende Zeichnung läge dann außerhalb des Sichtbaren.
+// Darum rückt sie um genau dieses Stück nach unten und wird flacher, solange getippt wird.
+if (window.visualViewport) {
+  const sicht = window.visualViewport;
+  const folge = () => {
+    document.documentElement.style.setProperty('--sicht-oben', `${Math.max(0, Math.round(sicht.offsetTop))}px`);
+    const tastatur = sicht.height < window.innerHeight - 120;
+    if (tastatur !== document.body.classList.contains('tastatur')) {
+      document.body.classList.toggle('tastatur', tastatur);
+      zeichne($('schnitt'), profil, aktiv);
+    }
+  };
+  sicht.addEventListener('resize', folge);
+  sicht.addEventListener('scroll', folge);
+  folge();
+}
 
 // Die Zeichnung rechnet in Bildschirm-Pixeln, also bei neuer Breite neu zeichnen
 new ResizeObserver(() => zeichne($('schnitt'), profil, aktiv)).observe($('schnitt'));

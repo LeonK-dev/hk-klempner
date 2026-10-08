@@ -3,8 +3,12 @@
 // Ein Profil ist eine Folge von Schenkeln mit Kantungen dazwischen:
 //   schenkel:  [{ l: Länge in mm (Außenmaß), art?: Schlüssel aus ABSCHLUESSE }]
 //   kantungen: [{ w: Innenwinkel in Grad, r: +1 | -1 }]  – immer eine weniger als Schenkel
-//   start:     Zeichenrichtung des ersten Schenkels in Grad (0 = nach rechts, 90 = nach oben)
+//   fest:      Index des Schenkels, der in der Zeichnung stehen bleibt
+//   lage:      Zeichenrichtung dieses festen Schenkels in Grad (0 = nach rechts, 90 = nach oben)
 //   sicht:     +1 = Sichtseite liegt links der Zeichenrichtung, -1 = rechts
+// Alle anderen Richtungen ergeben sich vom festen Schenkel aus. Wird davor oder dahinter ein
+// Winkel geändert oder umgeklappt, bewegt sich nur der Teil auf der anderen Seite der Kantung.
+// Ältere Profile haben statt fest/lage ein start (Richtung von Schenkel 1), das wird noch gelesen.
 // Innenwinkel: 180 = gerade, 90 = rechtwinklig, 0 = zugedrückter Umschlag.
 // r: +1 kantet in Zeichenrichtung gesehen nach links, -1 nach rechts.
 
@@ -37,6 +41,52 @@ export function kopie(p) {
   };
 }
 
+// Ungültige Winkel (beim Tippen) zählen vorläufig als 90°, damit die Zeichnung nicht springt
+function gueltig(w) {
+  return w >= 0 && w <= 180 ? w : 90;
+}
+
+function drehung(k) {
+  return k.r * (180 - gueltig(k.w));
+}
+
+export function festVon(p) {
+  return Number.isInteger(p.fest) && p.fest >= 0 && p.fest < p.schenkel.length ? p.fest : 0;
+}
+
+/** Index des längsten Schenkels. Er ist der feste Schenkel, solange nichts anderes gewählt ist. */
+export function laengster(p) {
+  let bester = 0;
+  p.schenkel.forEach((s, i) => {
+    if ((s.l > 0 ? s.l : 0) > (p.schenkel[bester].l > 0 ? p.schenkel[bester].l : 0)) bester = i;
+  });
+  return bester;
+}
+
+/** Zeichenrichtung von Schenkel i in Grad. */
+export function richtung(p, i) {
+  if (p.lage === undefined) { // älteres Profil: start ist die Richtung von Schenkel 1
+    let h = p.start || 0;
+    for (let k = 0; k < i; k++) h += drehung(p.kantungen[k]);
+    return h;
+  }
+  const f = festVon(p);
+  let h = p.lage;
+  for (let k = f; k < i; k++) h += drehung(p.kantungen[k]);
+  for (let k = i; k < f; k++) h -= drehung(p.kantungen[k]);
+  return h;
+}
+
+/** Macht aus einem älteren Profil mit start eines mit festem Schenkel, ohne die Zeichnung zu ändern. */
+export function mitAnker(p) {
+  if (p.lage !== undefined) return { ...kopie(p), fest: festVon(p) };
+  const q = kopie(p);
+  q.fest = laengster(q);
+  q.lage = richtung(p, q.fest);
+  delete q.start;
+  return q;
+}
+
 /** Bringt ein Profil aus dem Speicher in gültige Form. Unbrauchbares ergibt null. */
 export function normalisiert(p) {
   if (!p || !Array.isArray(p.schenkel) || p.schenkel.length === 0) return null;
@@ -50,15 +100,18 @@ export function normalisiert(p) {
     const k = (p.kantungen || [])[i] || {};
     kantungen.push({ w: k.w === undefined ? 90 : Number(k.w), r: k.r === -1 ? -1 : 1 });
   }
-  return {
+  const neu = Number.isFinite(Number(p.lage)) && p.lage !== null && p.lage !== undefined;
+  return mitAnker({
     name: String(p.name || 'Profil'),
     vorlage: p.vorlage || null,
     ueberdeckung: Number(p.ueberdeckung) || 0,
-    start: Number(p.start) || 0,
     sicht: p.sicht === -1 ? -1 : 1,
     schenkel,
     kantungen,
-  };
+    ...(neu
+      ? { fest: festVon({ fest: p.fest, schenkel }), lage: Number(p.lage) }
+      : { start: Number(p.start) || 0 }),
+  });
 }
 
 /** Zuschnittbreite: Summe der Außenmaße, ohne Abzug je Kantung. */
@@ -74,7 +127,7 @@ export function zuschnitt(p) {
 export function verlauf(p, spalt = 0) {
   let x = 0;
   let y = 0;
-  let h = (p.start || 0) * GRAD;
+  let h = richtung(p, 0) * GRAD;
   const punkte = [{ x, y }];
   const strecken = [];
   const ecken = [];
@@ -88,7 +141,7 @@ export function verlauf(p, spalt = 0) {
     const k = p.kantungen[i];
     if (!k) return;
     ecken.push({ kantung: i, punkt: punkte.length - 1 });
-    const w = k.w >= 0 && k.w <= 180 ? k.w : 90;
+    const w = gueltig(k.w);
     if (w === 0 && spalt > 0) {
       h += k.r * 90 * GRAD;
       x += spalt * Math.cos(h);
@@ -196,16 +249,14 @@ export function pruefe(p) {
 }
 
 // --- Änderungen am Profil. Alle geben ein neues Profil zurück. ---
-
-// Kommt vorn ein Schenkel dazu oder weg, soll der Rest der Zeichnung stehen bleiben.
-const drehungDer = (k) => k.r * (180 - k.w);
+// Der feste Schenkel behält dabei seine Richtung, der Rest richtet sich nach ihm.
 
 export function mitSchenkel(p, ende, schenkel = { l: 50 }, kantung = { w: 90, r: 1 }) {
-  const q = kopie(p);
+  const q = mitAnker(p);
   if (ende === 'anfang') {
     q.schenkel.unshift({ ...schenkel });
     q.kantungen.unshift({ ...kantung });
-    q.start -= drehungDer(kantung);
+    q.fest += 1;
   } else {
     q.schenkel.push({ ...schenkel });
     q.kantungen.push({ ...kantung });
@@ -214,22 +265,26 @@ export function mitSchenkel(p, ende, schenkel = { l: 50 }, kantung = { w: 90, r:
 }
 
 export function ohneSchenkel(p, i) {
-  if (p.schenkel.length <= 1) return kopie(p);
-  const q = kopie(p);
-  q.schenkel.splice(i, 1);
-  if (i === 0) {
-    const [k] = q.kantungen.splice(0, 1);
-    q.start += drehungDer(k);
-  } else {
-    q.kantungen.splice(Math.min(i, q.kantungen.length - 1), 1);
+  const q = mitAnker(p);
+  const n = q.schenkel.length;
+  if (n <= 1) return q;
+  if (i === q.fest) { // der Nachbar wird fest und behält seine jetzige Richtung
+    const nachbar = i === n - 1 ? i - 1 : i + 1;
+    const lageNachbar = richtung(q, nachbar);
+    q.fest = nachbar > i ? nachbar - 1 : nachbar;
+    q.lage = lageNachbar;
+  } else if (i < q.fest) {
+    q.fest -= 1;
   }
+  q.schenkel.splice(i, 1);
+  q.kantungen.splice(i === 0 ? 0 : Math.min(i, q.kantungen.length - 1), 1);
   return q;
 }
 
 /** Setzt, tauscht oder entfernt (art = null) den Kantenabschluss an einem Ende. */
 export function mitAbschluss(p, ende, art) {
   const vorn = ende === 'anfang';
-  let q = kopie(p);
+  let q = mitAnker(p);
   const i = vorn ? 0 : q.schenkel.length - 1;
   if (q.schenkel.length > 1 && q.schenkel[i].art) q = ohneSchenkel(q, i);
   if (!art) return q;
@@ -243,38 +298,61 @@ export function abschlussAn(p, ende) {
   return s.art || null;
 }
 
+/** Klappt Kantung k um. Es bewegt sich der Teil, der nicht den festen Schenkel enthält. */
+export function geklappt(p, k) {
+  const q = mitAnker(p);
+  q.kantungen[k].r = -q.kantungen[k].r;
+  return q;
+}
+
+/** Macht Schenkel i zum festen Schenkel. Die Zeichnung bleibt dabei, wie sie ist. */
+export function mitFest(p, i) {
+  const q = mitAnker(p);
+  const lageNeu = richtung(q, i);
+  q.fest = i;
+  q.lage = lageNeu;
+  return q;
+}
+
 export function gespiegelt(p) {
-  const q = kopie(p);
-  q.start = 180 - q.start;
+  const q = mitAnker(p);
+  q.lage = 180 - q.lage;
   q.sicht = -q.sicht;
   q.kantungen.forEach((k) => { k.r = -k.r; });
   return q;
 }
 
 export function gedreht(p, grad = 90) {
-  const q = kopie(p);
-  q.start = (q.start + grad) % 360;
+  const q = mitAnker(p);
+  q.lage = (q.lage + grad) % 360;
   return q;
 }
 
-/** Lage des ersten Schenkels als Winkel zwischen -180 und 180 Grad (0 = waagerecht, 90 = senkrecht). */
-export function lage(p) {
-  const w = (((p.start || 0) + 180) % 360 + 360) % 360 - 180;
-  return w === -180 ? 180 : runde(w);
+/**
+ * Neigung des festen Schenkels zwischen -90 und 90 Grad: 0 = waagerecht, 90 = senkrecht,
+ * positiv = steigt nach rechts an. In welche Richtung das Profil läuft, spielt dafür keine Rolle.
+ */
+export function neigung(p) {
+  const q = mitAnker(p);
+  const w = ((q.lage % 180) + 180) % 180;
+  return runde(w > 90 ? w - 180 : w);
 }
 
-/** Legt den ersten Schenkel waagerecht oder senkrecht, ohne die Zeichnung auf den Kopf zu stellen. */
+/** Stellt die Neigung des festen Schenkels ein, ohne die Zeichnung auf den Kopf zu stellen. */
+export function mitNeigung(p, grad) {
+  const q = mitAnker(p);
+  const abstand = (a) => Math.abs(((((a - q.lage) % 360) + 540) % 360) - 180);
+  q.lage = abstand(grad) <= abstand(grad + 180) ? grad : grad + 180;
+  return q;
+}
+
 export function ausgerichtet(p, wie) {
-  const q = kopie(p);
-  const rad = (p.start || 0) * GRAD;
-  if (wie === 'waagerecht') q.start = Math.cos(rad) >= -1e-9 ? 0 : 180;
-  else q.start = Math.sin(rad) >= -1e-9 ? 90 : -90;
-  return q;
+  return mitNeigung(p, wie === 'waagerecht' ? 0 : 90);
 }
 
 export function freiesProfil() {
   return {
-    name: 'Freies Profil', vorlage: null, ueberdeckung: 0, start: 0, sicht: 1,
+    name: 'Freies Profil', vorlage: null, ueberdeckung: 0, fest: 0, lage: 0, sicht: 1,
     schenkel: [{ l: 100 }], kantungen: [],
   };
 }

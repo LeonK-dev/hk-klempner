@@ -89,6 +89,24 @@
       <p class="hilfe">Die Liste läuft von <b>A</b> nach <b>E</b>, so wie in der Zeichnung markiert.
         Schenkel als Außenmaß in mm, Winkel als Innenwinkel zwischen den Schenkeln.</p>
 
+      <div class="ende-block fest-block">
+        <div class="ende-kopf">
+          <span class="ae"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <strong id="fest-titel">Schenkel 1 steht fest</strong>
+        </div>
+        <div class="reihe">
+          <span id="lage-name">Seine Lage</span>
+          <div class="lage">
+            <button type="button" class="chip" data-aktion="waagerecht">waagerecht</button>
+            <button type="button" class="chip" data-aktion="senkrecht">senkrecht</button>
+            <label class="feld"><input id="lage" type="text" inputmode="text" autocomplete="off" aria-labelledby="lage-name"><span class="einheit">°</span></label>
+          </div>
+        </div>
+        <p class="hilfe klein">Der feste Schenkel behält seine Richtung, wenn du Winkel änderst oder umklappst.
+          0° ist waagerecht, 90° senkrecht, dazwischen zum Beispiel die Dachneigung (mit Minus fällt er nach rechts).
+          Einen anderen Schenkel hältst du mit dem Schloss in seiner Zeile fest.</p>
+      </div>
+
       <div class="ende-block">
         <div class="ende-kopf">
           <span class="ae">A</span>
@@ -99,15 +117,6 @@
           <span>Abschluss bei A</span>
           <select id="abschluss-anfang"></select>
         </label>
-        <div class="reihe">
-          <span id="lage-name">Lage von Schenkel 1</span>
-          <div class="lage">
-            <button type="button" class="chip" data-aktion="waagerecht">waagerecht</button>
-            <button type="button" class="chip" data-aktion="senkrecht">senkrecht</button>
-            <label class="feld"><input id="lage" type="text" inputmode="decimal" autocomplete="off" aria-labelledby="lage-name"><span class="einheit">°</span></label>
-          </div>
-        </div>
-        <p class="hilfe klein">0° ist waagerecht, 90° senkrecht. Dazwischen zum Beispiel die Dachneigung, mit Minus nach unten.</p>
       </div>
 
       <div id="schenkel"></div>
