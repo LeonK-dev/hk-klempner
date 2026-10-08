@@ -1,0 +1,9 @@
+# Interne Notizen und Festlegungen bleiben auf dem Server und gehen nicht ins öffentliche Repository
+PLAN.md
+
+# Preisdateien enthalten Einkaufspreise und dürfen nie hochgeladen werden
+preise*.json
+*.preise.json
+
+__pycache__/
+node_modules/

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HK Klempner – Tests</title>
+  <style>
+    body { font: 16px/1.4 system-ui, sans-serif; margin: 24px; color: #2B3646; }
+    h1 { font-size: 20px; }
+    li { margin: 2px 0; }
+    .ok { color: #2E7D4F; }
+    .nein { color: #B00009; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1 id="summe">Tests laufen …</h1>
+  <ul id="liste"></ul>
+  <script type="module">
+    import { ergebnisse } from './alle.js';
+    const liste = document.getElementById('liste');
+    ergebnisse.forEach((e) => {
+      const li = document.createElement('li');
+      li.className = e.ok ? 'ok' : 'nein';
+      li.textContent = e.ok ? `ok – ${e.name}` : `FEHLER – ${e.name}: ${e.fehler}`;
+      liste.append(li);
+    });
+    const fehler = ergebnisse.filter((e) => !e.ok).length;
+    document.getElementById('summe').textContent =
+      `${ergebnisse.length - fehler} von ${ergebnisse.length} Tests bestanden`;
+    document.title = fehler ? `${fehler} FEHLER` : 'alle Tests ok';
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HK Klempner – alle Vorlagen</title>
+  <link rel="stylesheet" href="../css/hk.css">
+  <style>
+    main { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; max-width: none; }
+    .karte { padding: 10px; }
+    .karte h2 { margin: 0 0 4px; font-size: 16px; }
+    .karte p { margin: 4px 0 0; font-size: 14px; color: var(--hk-neutral-600); }
+  </style>
+</head>
+<body>
+  <header class="kopf"><div class="kopf-innen"><h1>HK Klempner</h1><p>Alle Vorlagen zur Durchsicht</p></div></header>
+  <main id="liste"></main>
+  <script type="module">
+    import { VORLAGEN, ausVorlage } from '../js/kern/vorlagen.js';
+    import { zuschnitt } from '../js/kern/profil.js';
+    import { zeichne } from '../js/zeichnung.js';
+
+    const liste = document.getElementById('liste');
+    VORLAGEN.forEach((v) => {
+      const karte = document.createElement('section');
+      karte.className = 'karte';
+      karte.innerHTML = '<h2></h2><svg class="schnitt"></svg><p></p>';
+      karte.querySelector('h2').textContent = v.name;
+      liste.append(karte);
+      const p = ausVorlage(v);
+      zeichne(karte.querySelector('svg'), p);
+      karte.querySelector('p').textContent = `Zuschnitt ${zuschnitt(p)} mm · Überdeckung ${v.ueberdeckung} mm`;
+    });
+  </script>
+</body>
+</html>

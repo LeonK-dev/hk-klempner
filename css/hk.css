@@ -1,0 +1,323 @@
+/* HK Klempner – Farben und Schriften aus dem Hein-&-Knott-Designsystem (Stand Aufmaßblatt). */
+
+@font-face { font-family: "Barlow Condensed"; font-weight: 600; font-style: normal; font-display: swap; src: url("../schriften/BarlowCondensed-600-latin.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-style: normal; font-display: swap; src: url("../schriften/BarlowCondensed-700-latin.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; font-style: normal; font-display: swap; src: url("../schriften/BarlowCondensed-800-latin.woff2") format("woff2"); }
+@font-face { font-family: "Source Sans 3"; font-weight: 200 900; font-style: normal; font-display: swap; src: url("../schriften/SourceSans3-var-latin.woff2") format("woff2"); }
+
+:root {
+  --hk-navy-900: #0F1D35; --hk-navy-700: #192D4F; --hk-navy-500: #2E4A78;
+  --hk-rot-600: #DB010B; --hk-rot-700: #B00009;
+  --hk-neutral-0: #FFFFFF; --hk-neutral-50: #F4F6F9; --hk-neutral-100: #E8ECF2;
+  --hk-neutral-200: #D3DAE4; --hk-neutral-400: #98A3B4; --hk-neutral-600: #5B6879; --hk-neutral-800: #2B3646;
+  --hk-ziegel-500: #B4562E; --hk-ziegel-100: #F6E9E1;
+  --hk-erfolg-600: #2E7D4F; --hk-erfolg-100: #E3F2E9;
+  --hk-warnung-600: #B8730A; --hk-warnung-100: #FBF0DC;
+  --hk-fehler-600: var(--hk-rot-700); --hk-fehler-100: #FBE6E7;
+
+  --schrift-kopf: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --schrift-text: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--hk-neutral-50);
+  color: var(--hk-neutral-800);
+  font: 400 17px/1.4 var(--schrift-text);
+}
+
+.sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* --- Kopf --- */
+
+.kopf {
+  border-top: 4px solid var(--hk-rot-600);
+  background: var(--hk-navy-700);
+  color: var(--hk-neutral-0);
+  padding-top: env(safe-area-inset-top);
+}
+.kopf-innen {
+  max-width: 1120px; margin: 0 auto; padding: 10px 16px;
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+.kopf h1 {
+  margin: 0;
+  font: 700 26px/1 var(--schrift-kopf);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.kopf p { margin: 0; font-size: 14px; color: var(--hk-neutral-200); }
+
+.reiter { display: flex; gap: 4px; margin-left: auto; }
+.reiter-knopf {
+  min-height: 40px; padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 6px;
+  background: transparent; color: var(--hk-neutral-0);
+  font: 600 16px/1 var(--schrift-text); cursor: pointer;
+}
+.reiter-knopf.an { background: var(--hk-neutral-0); border-color: var(--hk-neutral-0); color: var(--hk-navy-700); }
+
+/* --- Aufbau --- */
+
+main {
+  max-width: 1120px; margin: 0 auto; padding: 16px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  display: grid; gap: 16px;
+}
+
+/* Schmal: Zeichnung und Zuschnitt kleben oben, damit man beim Tippen sieht, was passiert. */
+.links { display: contents; }
+.schau {
+  position: sticky; top: 0; z-index: 5;
+  margin: -16px -16px 0; padding: 6px 16px 10px;
+  border-width: 0 0 1px; border-radius: 0;
+  box-shadow: 0 2px 8px rgba(15, 29, 53, 0.08);
+}
+.breite .tipp:not([hidden]) { margin: 0 0 14px; }
+.breite .breiten { margin-top: 0; }
+@media (max-height: 520px) {
+  .schau { position: static; }
+}
+
+@media (min-width: 880px) {
+  main { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
+  .links { display: grid; gap: 16px; position: sticky; top: 16px; }
+  .schau {
+    position: static; margin: 0; padding: 16px;
+    border-width: 1px; border-radius: 10px; box-shadow: none;
+  }
+}
+
+.karte {
+  background: var(--hk-neutral-0);
+  border: 1px solid var(--hk-neutral-200);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+
+h2 {
+  margin: 22px 0 8px;
+  font: 700 18px/1.2 var(--schrift-kopf);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--hk-navy-700);
+}
+.hilfe { margin: 0 0 12px; font-size: 15px; color: var(--hk-neutral-600); }
+
+/* --- Zeichnung --- */
+
+.schnitt { display: block; width: 100%; height: auto; overflow: visible; touch-action: manipulation; }
+.schnitt .blech { fill: none; stroke: var(--hk-navy-700); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.schnitt .sicht { fill: none; stroke: var(--hk-ziegel-500); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+.schnitt line.aktiv { stroke: var(--hk-rot-600); stroke-width: 5; stroke-linecap: round; }
+.schnitt .ende-punkt { fill: var(--hk-navy-700); }
+.schnitt .marke { fill: var(--hk-navy-700); }
+.schnitt .marke-text { font-family: var(--schrift-kopf); font-size: 13px; font-weight: 700; fill: var(--hk-neutral-0); }
+.schnitt .griff { stroke: transparent; stroke-width: 30; stroke-linecap: round; cursor: pointer; }
+.schnitt text { font-family: var(--schrift-text); font-variant-numeric: tabular-nums; }
+.schnitt .mass { font-size: 15px; font-weight: 700; fill: var(--hk-navy-900); }
+.schnitt .mass.aktiv { fill: var(--hk-rot-700); }
+.schnitt .winkel { font-size: 12px; fill: var(--hk-neutral-600); }
+.schnitt .legende { font-size: 12px; fill: var(--hk-neutral-600); }
+
+.ergebnis { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 14px; }
+.kennzahl { display: flex; align-items: baseline; gap: 8px; }
+.kennzahl .zahl {
+  font: 700 36px/1 var(--schrift-kopf);
+  color: var(--hk-ziegel-500);
+  font-variant-numeric: tabular-nums;
+}
+.kennzahl .einheit {
+  font: 600 15px/1 var(--schrift-kopf);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--hk-neutral-600);
+}
+/* Urteil zum Verschnitt: Farbe und Wort zusammen, nie Farbe allein */
+.ampel {
+  align-self: center; padding: 4px 10px; border-radius: 999px;
+  font-size: 15px; font-weight: 600; white-space: nowrap;
+}
+.ampel.gut { background: var(--hk-erfolg-100); color: #1F5C39; }
+.ampel.mittel { background: var(--hk-warnung-100); color: #6B4406; }
+.ampel.schlecht { background: var(--hk-fehler-100); color: var(--hk-fehler-600); }
+.verschnitt { margin: 0 0 12px; font-weight: 600; }
+@media (min-width: 880px) {
+  .kennzahl { margin-top: 8px; gap: 10px; }
+  .kennzahl .zahl { font-size: 56px; }
+  .kennzahl .einheit { font-size: 18px; }
+}
+.tipp {
+  margin: 8px 0 0; padding: 10px 12px; border-radius: 6px;
+  background: var(--hk-ziegel-100); color: var(--hk-neutral-800); font-size: 16px;
+}
+
+.breiten { border: 0; margin: 14px 0 0; padding: 0; min-width: 0; }
+.breiten legend { padding: 0; margin-bottom: 6px; font-size: 14px; color: var(--hk-neutral-600); }
+#breiten { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  min-height: 40px; min-width: 56px; padding: 0 12px;
+  border: 1px solid var(--hk-neutral-200); border-radius: 6px;
+  background: var(--hk-neutral-0); color: var(--hk-neutral-800);
+  font: 600 16px/1 var(--schrift-text); font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.chip.an { background: var(--hk-navy-700); border-color: var(--hk-navy-700); color: var(--hk-neutral-0); }
+
+.hinweis { margin: 12px 0 0; padding: 8px 12px; border-radius: 6px; font-size: 15px; }
+.hinweis.warnung { background: var(--hk-warnung-100); color: #6B4406; }
+.hinweis.fehler { background: var(--hk-fehler-100); color: var(--hk-fehler-600); }
+
+/* --- Eingabe --- */
+
+.zeile.zwei { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.block { display: grid; gap: 4px; min-width: 0; }
+.block > span { font-size: 14px; color: var(--hk-neutral-600); }
+
+select, input[type="text"] {
+  width: 100%; min-height: 46px; padding: 0 12px;
+  border: 1px solid var(--hk-neutral-400); border-radius: 6px;
+  background: var(--hk-neutral-0); color: var(--hk-neutral-800);
+  font: 400 17px/1.2 var(--schrift-text);
+}
+select:focus-visible, input:focus-visible, button:focus-visible {
+  outline: 3px solid rgba(46, 74, 120, 0.35); outline-offset: 1px; border-color: var(--hk-navy-500);
+}
+
+/* Anfang und Ende der Liste, passend zu A und E in der Zeichnung */
+.ende-block {
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--hk-neutral-50); border: 1px solid var(--hk-neutral-100);
+}
+#schenkel { margin: 6px 0; }
+.ende-kopf { display: flex; align-items: center; gap: 10px; }
+.ende-kopf .knopf { margin-left: auto; background: var(--hk-neutral-0); }
+.ae {
+  flex: 0 0 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--hk-navy-700); color: var(--hk-neutral-0);
+  font: 700 15px/1 var(--schrift-kopf);
+}
+.reihe { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 10px; }
+.reihe > span { flex: 0 0 150px; font-size: 15px; color: var(--hk-neutral-600); }
+.reihe select { flex: 1 1 180px; width: auto; }
+.lage { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 180px; }
+.lage .feld input { width: 74px; font-weight: 400; }
+.lage .feld .einheit { min-width: 0; }
+.hilfe.klein { margin: 8px 0 0; font-size: 14px; }
+
+.schenkel, .kantung { display: flex; align-items: center; gap: 10px; min-height: 54px; }
+.kantung { padding-left: 42px; }
+.schenkel + .kantung, .kantung + .schenkel { border-top: 1px solid var(--hk-neutral-100); }
+.nr {
+  flex: 0 0 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--hk-navy-700); color: var(--hk-neutral-0);
+  font: 700 17px/1 var(--schrift-kopf);
+}
+.kant-name { flex: 0 0 auto; font-size: 15px; color: var(--hk-neutral-600); }
+.feld { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.feld input {
+  width: 92px; text-align: right;
+  font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.kantung { gap: 8px; }
+.kantung .feld input { width: 70px; font-weight: 400; }
+.feld .einheit { color: var(--hk-neutral-600); min-width: 1.6em; }
+.kantung .feld .einheit { min-width: 0; }
+.kantung .knopf { margin-left: auto; }
+.art { flex: 1 1 auto; min-width: 0; font-size: 14px; color: var(--hk-ziegel-500); font-weight: 600; }
+.falsch input { border-color: var(--hk-rot-700); background: var(--hk-fehler-100); }
+
+.weg {
+  margin-left: auto; flex: 0 0 44px; height: 44px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 6px; background: transparent; color: var(--hk-neutral-600);
+  cursor: pointer;
+}
+.weg:hover:not(:disabled) { background: var(--hk-neutral-100); color: var(--hk-rot-700); }
+.weg:disabled { opacity: 0.3; cursor: default; }
+
+.knoepfe { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.knopf {
+  min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--hk-navy-700); border-radius: 6px;
+  background: var(--hk-neutral-0); color: var(--hk-navy-700);
+  font: 600 16px/1 var(--schrift-text);
+  cursor: pointer; transition: background-color 140ms ease-out, color 140ms ease-out;
+}
+.knopf:hover { background: var(--hk-neutral-100); }
+.knopf.haupt { background: var(--hk-navy-700); color: var(--hk-neutral-0); }
+.knopf.haupt:hover { background: var(--hk-navy-900); }
+.knopf.klein { min-height: 40px; padding: 0 12px; font-size: 15px; font-weight: 400; border-color: var(--hk-neutral-400); color: var(--hk-neutral-800); }
+
+.meldung { margin: 10px 0 0; min-height: 1.4em; font-size: 15px; color: var(--hk-neutral-600); }
+
+/* --- Auftrag --- */
+
+main[hidden] { display: none; }
+main.auftrag { grid-template-columns: minmax(0, 1fr); max-width: 860px; }
+h2.erste { margin-top: 0; }
+.block.abstand { margin-top: 12px; }
+.leer { margin: 0; color: var(--hk-neutral-600); }
+#positionen, #plaene { display: grid; gap: 16px; }
+#positionen:empty, #plaene:empty { display: none; }
+
+.pos-kopf { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.pos-kopf .nr { flex: 0 0 38px; height: 38px; }
+.pos-titel { display: grid; min-width: 0; flex: 1 1 auto; }
+.pos-titel strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pos-titel span { font-size: 14px; color: var(--hk-neutral-600); }
+.pos-kopf .weg { margin-left: 0; }
+
+.mengenart { display: flex; gap: 6px; margin: 14px 0 10px; }
+.menge { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.menge[hidden] { display: none; }
+.menge .feld input { width: 96px; }
+.menge .vor { font-size: 15px; color: var(--hk-neutral-600); }
+.menge .mal { color: var(--hk-neutral-600); font-size: 20px; }
+.stueckzeile { margin: 10px 0 0; font-weight: 600; }
+
+.plan-kopf { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.plan-kopf h2 { margin: 0; }
+.plan .verschnitt { margin: 0 0 6px; }
+.plan-text { margin: 0 0 14px; font-size: 16px; }
+
+.bleche { display: grid; gap: 14px; }
+.blech { margin: 0; }
+.blech figcaption { margin-bottom: 4px; font-size: 15px; }
+.blech-bild { display: block; width: 100%; height: auto; }
+.blech-bild .tafel { fill: var(--hk-neutral-0); }
+.blech-bild rect.teil { stroke: var(--hk-navy-700); stroke-width: 1; }
+.blech-bild rect.rest { fill: var(--hk-neutral-0); stroke: var(--hk-neutral-400); stroke-width: 1; stroke-dasharray: 4 3; }
+.blech-bild rect.abfall { fill: var(--hk-fehler-100); stroke: var(--hk-neutral-400); stroke-width: 0.5; }
+.blech-bild .rand { fill: none; stroke: var(--hk-navy-700); stroke-width: 1.5; }
+.blech-bild text { font-family: var(--schrift-text); font-size: 12px; font-variant-numeric: tabular-nums; }
+.blech-bild text.teil { fill: var(--hk-navy-900); font-weight: 600; }
+.blech-bild text.rest { fill: var(--hk-neutral-600); }
+.blech-bild text.abfall { fill: var(--hk-fehler-600); }
+
+.liste { width: 100%; margin-top: 16px; border-collapse: collapse; font-size: 16px; font-variant-numeric: tabular-nums; }
+.liste th {
+  padding: 6px 8px; text-align: left; border-bottom: 2px solid var(--hk-navy-700);
+  font: 600 14px/1.2 var(--schrift-kopf); letter-spacing: 0.05em; text-transform: uppercase; color: var(--hk-navy-700);
+}
+.liste td { padding: 7px 8px; border-bottom: 1px solid var(--hk-neutral-100); }
+.liste .zahl { text-align: right; }
+.liste td:first-child { white-space: nowrap; }
+.punkt {
+  display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px;
+  border: 1px solid var(--hk-navy-700); border-radius: 2px;
+}
+
+.formate { margin-top: 14px; }
+.formate summary { cursor: pointer; padding: 10px 0; color: var(--hk-navy-700); font-weight: 600; }
+.haken-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 12px; margin-top: 6px; }
+.haken { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.haken input { width: 22px; height: 22px; accent-color: var(--hk-navy-700); }

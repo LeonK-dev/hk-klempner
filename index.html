@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#192D4F">
+  <title>HK Klempner</title>
+  <link rel="stylesheet" href="css/hk.css">
+</head>
+<body>
+  <header class="kopf">
+    <div class="kopf-innen">
+      <h1>HK Klempner</h1>
+      <p>Hein &amp; Knott Bedachungen</p>
+      <nav class="reiter" aria-label="Ansicht">
+        <button type="button" class="reiter-knopf an" data-ansicht="profil" aria-pressed="true">Profil</button>
+        <button type="button" class="reiter-knopf" data-ansicht="auftrag" aria-pressed="false">Auftrag<span id="auftrag-zahl"></span></button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="ansicht-auftrag" class="auftrag" hidden>
+    <section class="karte">
+      <h2 class="erste">Auftrag</h2>
+      <div class="zeile zwei">
+        <label class="block">
+          <span>Bauvorhaben</span>
+          <input id="kopf-bauvorhaben" type="text" autocomplete="off">
+        </label>
+        <label class="block">
+          <span>Bearbeiter</span>
+          <input id="kopf-bearbeiter" type="text" autocomplete="off">
+        </label>
+      </div>
+      <label class="block abstand">
+        <span>Bemerkung</span>
+        <input id="kopf-bemerkung" type="text" autocomplete="off">
+      </label>
+    </section>
+
+    <p class="karte leer" id="auftrag-leer">Noch keine Position. Im Reiter „Profil“ ein Profil eingeben
+      und unten auf „In den Auftrag übernehmen“ tippen.</p>
+    <div id="positionen"></div>
+    <div id="plaene"></div>
+    <div class="knoepfe">
+      <button type="button" class="knopf" data-ansicht="profil">+ Weiteres Profil</button>
+      <button type="button" class="knopf" id="auftrag-leeren" hidden>Auftrag leeren</button>
+    </div>
+  </main>
+
+  <main id="ansicht-profil">
+    <div class="links">
+      <!-- bleibt am Handy beim Tippen oben stehen -->
+      <section class="karte schau" aria-label="Schnitt und Zuschnitt">
+        <svg id="schnitt" class="schnitt" role="img" aria-label="Profil im Schnitt"></svg>
+        <div class="ergebnis">
+          <div class="kennzahl">
+            <span class="zahl" id="zuschnitt">0</span>
+            <span class="einheit">mm Zuschnitt</span>
+          </div>
+          <span class="ampel" id="ampel"></span>
+        </div>
+      </section>
+
+      <section class="karte breite" aria-label="Verschnitt in der Breite">
+        <p class="verschnitt" id="verschnitt"></p>
+        <p class="tipp" id="tipp" hidden></p>
+        <fieldset class="breiten">
+          <legend>Breite von Tafel oder Coil in mm</legend>
+          <div id="breiten"></div>
+        </fieldset>
+        <div id="hinweise"></div>
+      </section>
+    </div>
+
+    <section class="karte eingabe" aria-label="Eingabe">
+      <div class="zeile zwei">
+        <label class="block">
+          <span>Vorlage</span>
+          <select id="vorlage"></select>
+        </label>
+        <label class="block">
+          <span>Bezeichnung</span>
+          <input id="name" type="text" autocomplete="off">
+        </label>
+      </div>
+
+      <h2>Schenkel und Kantungen</h2>
+      <p class="hilfe">Die Liste läuft von <b>A</b> nach <b>E</b>, so wie in der Zeichnung markiert.
+        Schenkel als Außenmaß in mm, Winkel als Innenwinkel zwischen den Schenkeln.</p>
+
+      <div class="ende-block">
+        <div class="ende-kopf">
+          <span class="ae">A</span>
+          <strong>Anfang</strong>
+          <button type="button" class="knopf klein" data-aktion="schenkel-anfang">+ Schenkel bei A</button>
+        </div>
+        <label class="reihe">
+          <span>Abschluss bei A</span>
+          <select id="abschluss-anfang"></select>
+        </label>
+        <div class="reihe">
+          <span id="lage-name">Lage von Schenkel 1</span>
+          <div class="lage">
+            <button type="button" class="chip" data-aktion="waagerecht">waagerecht</button>
+            <button type="button" class="chip" data-aktion="senkrecht">senkrecht</button>
+            <label class="feld"><input id="lage" type="text" inputmode="decimal" autocomplete="off" aria-labelledby="lage-name"><span class="einheit">°</span></label>
+          </div>
+        </div>
+        <p class="hilfe klein">0° ist waagerecht, 90° senkrecht. Dazwischen zum Beispiel die Dachneigung, mit Minus nach unten.</p>
+      </div>
+
+      <div id="schenkel"></div>
+
+      <div class="ende-block">
+        <div class="ende-kopf">
+          <span class="ae">E</span>
+          <strong>Ende</strong>
+          <button type="button" class="knopf klein" data-aktion="schenkel-ende">+ Schenkel bei E</button>
+        </div>
+        <label class="reihe">
+          <span>Abschluss bei E</span>
+          <select id="abschluss-ende"></select>
+        </label>
+      </div>
+
+      <h2>Ansicht</h2>
+      <div class="knoepfe">
+        <button type="button" class="knopf" data-aktion="sicht">Sichtseite wechseln</button>
+        <button type="button" class="knopf" data-aktion="drehen">Um 90° drehen</button>
+        <button type="button" class="knopf" data-aktion="spiegeln">Spiegeln</button>
+      </div>
+
+      <h2>Weiter</h2>
+      <div class="knoepfe">
+        <button type="button" class="knopf haupt" data-aktion="uebernehmen" id="uebernehmen">In den Auftrag übernehmen</button>
+        <button type="button" class="knopf" data-aktion="speichern">Profil speichern</button>
+        <button type="button" class="knopf" data-aktion="loeschen" id="loeschen" hidden>Gespeichertes löschen</button>
+      </div>
+      <p class="meldung" id="meldung" role="status"></p>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
