@@ -46,6 +46,15 @@
       <button type="button" class="knopf" data-ansicht="profil">+ Weiteres Profil</button>
       <button type="button" class="knopf" id="auftrag-leeren" hidden>Auftrag leeren</button>
     </div>
+
+    <section class="karte preise" aria-label="Preise">
+      <p id="preise-text" class="preise-text"></p>
+      <div class="knoepfe">
+        <label class="knopf klein datei">Preisdatei laden<input id="preise-datei" class="sr" type="file" accept="application/json,.json"></label>
+        <button type="button" class="knopf klein" id="preise-entfernen" hidden>Preise entfernen</button>
+      </div>
+      <p class="hinweis fehler" id="preise-fehler" hidden></p>
+    </section>
   </main>
 
   <main id="ansicht-profil">

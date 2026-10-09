@@ -14,6 +14,13 @@ python werkzeug/server.py --oeffnen
 
 Unter Windows genügt ein Doppelklick auf `HK Klempner starten.bat`.
 
+## Preise
+
+Im Programm stehen keine Preise. Die Einkaufspreise kommen aus einer Preisdatei, die
+`werkzeug/preisdatei.py` aus dem Materialstamm erzeugt. Sie wird auf jedem Gerät einzeln
+geladen (Reiter „Auftrag“, ganz unten), bleibt im Browser dieses Geräts und geht nie ins Netz.
+Ohne Preisdatei zeigt das Tool Fläche und Gewicht.
+
 ## Tests
 
 Im Browser `tests/index.html` über den Server öffnen, oder mit Node.js:
@@ -26,8 +33,8 @@ node tests/lauf.mjs
 
 | Ordner | Inhalt |
 |---|---|
-| `js/kern/` | Rechenkern: Profil, Vorlagen, Material, Auftrag, Zuschnittplan |
+| `js/kern/` | Rechenkern: Profil, Vorlagen, Material, Auftrag, Zuschnittplan, Preise |
 | `js/` | Bildschirm: Eingabemaske, Auftragsansicht, Zeichnungen |
 | `css/`, `schriften/` | Design |
 | `tests/` | Tests des Rechenkerns und eine Übersicht aller Vorlagen |
-| `werkzeug/` | kleiner Server für die Entwicklung |
+| `werkzeug/` | kleiner Server für die Entwicklung, Erzeugen der Preisdatei |

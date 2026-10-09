@@ -1,12 +1,15 @@
 # Interne Notizen und Festlegungen bleiben auf dem Server und gehen nicht ins öffentliche Repository
 PLAN.md
 
-# enthält den Namen des Firmenservers
+# enthalten den Namen des Firmenservers bzw. interne Ablageorte
 Zu GitHub hochladen.bat
+Preisdatei erzeugen.bat
+.claude/
 
-# Preisdateien enthalten Einkaufspreise und dürfen nie hochgeladen werden
+# Preisdateien und Preisberichte enthalten Einkaufspreise und dürfen nie hochgeladen werden
 preise*.json
 *.preise.json
+preisbericht*.txt
 
 __pycache__/
 node_modules/

@@ -4,11 +4,14 @@ import { gruppen, planeGruppe, stuecke } from './kern/auftrag.js';
 import {
   MASCHINE, MATERIALIEN, dickenHinweis, formatName, formatSchluessel, materialMit,
 } from './kern/material.js';
+import { alterInTagen, kosten, lesePreise } from './kern/preise.js';
 import { kopie, normalisiert, zahl, zuschnitt } from './kern/profil.js';
 import { gleicheZusammen } from './kern/zuschnittplan.js';
 import { zeichneBlech } from './plan-zeichnung.js';
 
 const SPEICHER = 'hk-klempner.auftrag';
+const PREISE = 'hk-klempner.preise'; // bleibt auf diesem Gerät, wird nie verschickt
+const PREISE_ALT = 90; // Tage, danach erinnert das Tool ans Neuerzeugen
 const FARBEN = ['#DCE4F0', '#F6E9E1', '#E3F2E9', '#FBF0DC', '#E9E4F2', '#DDEFF0'];
 const KREUZ = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
@@ -17,6 +20,33 @@ const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 // ohne Tausenderpunkt: 2000 mm bleibt 2000, sonst läse die Eingabe "2.000" als 2
 const dez = (x, stellen = 1) => x.toLocaleString('de-DE', { useGrouping: false, maximumFractionDigits: stellen });
 const mm = (x) => dez(x, 1);
+const euro = (x) => x.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+const datum = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : '';
+};
+
+function ladePreise() {
+  try {
+    const text = localStorage.getItem(PREISE);
+    return text ? lesePreise(JSON.parse(text)) : null;
+  } catch {
+    return null;
+  }
+}
+
+// "5,22 €/kg, Rechnung Vollmar 7501010143 vom 16.06.2026"
+function preisText(e) {
+  const betrag = `${e.preis.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/${e.einheit}`;
+  const tag = datum(e.datum);
+  let woher;
+  if (e.herkunft === 'DTG Liste') woher = `DTG-Liste${tag ? ` vom ${tag}` : ''}, freibleibend`;
+  else if (e.herkunft === 'Schätzung') woher = 'geschätzt';
+  else woher = [e.herkunft, e.haendler, e.beleg].filter(Boolean).join(' ') + (tag ? ` vom ${tag}` : '');
+  return `${betrag}, ${woher}${e.hinweis ? ` – ${e.hinweis}` : ''}`;
+}
+
+const sicher = (e) => e.herkunft === 'Rechnung' || e.herkunft === 'Angebot';
 
 function lade() {
   let roh = null;
@@ -53,6 +83,7 @@ function lade() {
  */
 export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
   let auftrag = lade();
+  let preise = ladePreise();
 
   const sichere = () => {
     try {
@@ -134,7 +165,22 @@ export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
     )).join(', ');
   }
 
-  function planKarte(g, r, nr) {
+  function kostenBlock(k) {
+    if (!k) return '';
+    if (k.fehlt.length) {
+      const was = k.fehlt.map((f) => formatName(f)).join(', ');
+      return `<p class="hinweis warnung">Kein Preis für ${esc(was)} in der Preisdatei. Den Materialpreis kann das Tool hier nicht rechnen.</p>`;
+    }
+    const reste = k.reste >= 0.005
+      ? ` Angebrochen wird Blech für ${euro(k.gekauft)}, davon gehen ${euro(k.reste)} als brauchbare Reste ins Lager.` : '';
+    const basis = k.basis.map(({ format, eintrag }) => (
+      `<li${sicher(eintrag) ? '' : ' class="unsicher"'}>${esc(formatName(format))}: ${esc(preisText(eintrag))}</li>`
+    )).join('');
+    return `<p class="kosten"><strong>Material ${euro(k.verbrauch)}</strong> netto im Einkauf, mit Verschnitt.${reste}</p>
+      <ul class="preisbasis">${basis}</ul>`;
+  }
+
+  function planKarte(g, r, nr, geld) {
     const titel = `${esc(g.material.name)} ${dez(g.dicke, 2)} mm`;
     const formate = g.material.formate.map((f) => {
       const k = formatSchluessel(f);
@@ -185,6 +231,7 @@ export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
       <div class="plan-kopf"><h2 class="erste">${titel}</h2><span class="ampel ${farbe}">${wort}</span></div>
       <p class="verschnitt">Bedarf: ${bedarfText(r.plan.bleche)}.</p>
       <p class="plan-text">Verbrauch ${dez(r.verbrauchM2, 2)} m² (${dez(r.verbrauchKg, 1)} kg), davon Verschnitt ${dez(r.verschnittM2, 2)} m² (${dez(prozent, 1)} %). ${resteText}</p>
+      ${kostenBlock(geld)}
       <div class="bleche">${bilder}</div>
       <table class="liste">
         <thead><tr><th>Pos.</th><th>Profil</th><th class="zahl">Zuschnitt mm</th><th class="zahl">Stück</th><th class="zahl">Länge mm</th></tr></thead>
@@ -204,10 +251,28 @@ export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
     });
   }
 
+  // Summe über alle Materialien, nur mit geladener Preisdatei
+  function summenKarte(gr, kostenListe) {
+    const mit = kostenListe.filter(Boolean);
+    // bei nur einem Material steht der Betrag schon in seiner Karte
+    if (!preise || mit.length < 2 || mit.every((k) => k.verbrauch === null)) return '';
+    const ohne = gr.filter((g, i) => !ergebnisse[i].plan.moeglich || (kostenListe[i] && kostenListe[i].verbrauch === null))
+      .map((g) => `${g.material.name} ${dez(g.dicke, 2)} mm`);
+    const summe = mit.reduce((s, k) => s + (k.verbrauch || 0), 0);
+    const teil = ohne.length ? ` Nicht enthalten: ${esc(ohne.join(', '))}.` : '';
+    return `<section class="karte summe"><p><strong>Material gesamt ${euro(summe)}</strong> netto im Einkauf,
+      mit Verschnitt, ohne brauchbare Reste.${teil}</p></section>`;
+  }
+
   function zeigePlaene() {
     const gr = gruppen(auftrag.positionen);
     ergebnisse = gr.map((g) => planeGruppe(g, auftrag.formateAus[g.material.id] || []));
-    $('plaene').innerHTML = gr.map((g, i) => planKarte(g, ergebnisse[i], i)).join('');
+    const kostenListe = gr.map((g, i) => {
+      const r = ergebnisse[i];
+      return preise && r.plan.moeglich && r.plan.bleche.length ? kosten(r.plan.bleche, g.material, g.dicke, preise) : null;
+    });
+    $('plaene').innerHTML = gr.map((g, i) => planKarte(g, ergebnisse[i], i, kostenListe[i])).join('')
+      + summenKarte(gr, kostenListe);
     zeichnePlaene();
 
     // Stückzeile und Warnungen in den Positionskarten
@@ -235,12 +300,65 @@ export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
     }));
   }
 
+  // --- Preisdatei ---
+
+  function zeigePreise(fehler = '') {
+    let text = 'Ohne Preisdatei zeigt das Tool nur Fläche und Gewicht. Die Preise sind Einkaufspreise und bleiben auf diesem Gerät.';
+    if (preise) {
+      const alter = alterInTagen(preise);
+      text = `Preise vom ${datum(preise.stand) || 'unbekannten Datum'} geladen, Einkauf netto aus dem Materialstamm.`;
+      if (alter !== null && alter > PREISE_ALT) text += ` Die Datei ist ${alter} Tage alt, bitte neu erzeugen lassen.`;
+    }
+    $('preise-text').textContent = text;
+    $('preise-entfernen').hidden = !preise;
+    $('preise-fehler').textContent = fehler;
+    $('preise-fehler').hidden = !fehler;
+  }
+
+  $('preise-datei').addEventListener('change', async (e) => {
+    const datei = e.target.files && e.target.files[0];
+    e.target.value = ''; // dieselbe Datei soll sich noch einmal laden lassen
+    if (!datei) return;
+    try {
+      const text = await datei.text();
+      let roh;
+      try {
+        roh = JSON.parse(text);
+      } catch {
+        throw new Error('Die Datei lässt sich nicht lesen. Es muss die Preisdatei (preise-….json) sein.');
+      }
+      preise = lesePreise(roh);
+      try {
+        localStorage.setItem(PREISE, text);
+      } catch {
+        // ohne Speicher gelten die Preise nur, bis die Seite geschlossen wird
+      }
+      zeigePreise();
+    } catch (fehler) {
+      zeigePreise(fehler.message);
+    }
+    zeigePlaene();
+  });
+
+  $('preise-entfernen').addEventListener('click', () => {
+    if (!window.confirm('Preise von diesem Gerät entfernen?')) return;
+    preise = null;
+    try {
+      localStorage.removeItem(PREISE);
+    } catch {
+      // nichts zu tun
+    }
+    zeigePreise();
+    zeigePlaene();
+  });
+
   function zeige() {
     $('kopf-bauvorhaben').value = auftrag.kopf.bauvorhaben;
     $('kopf-bearbeiter').value = auftrag.kopf.bearbeiter;
     $('kopf-bemerkung').value = auftrag.kopf.bemerkung;
     zeigePositionen();
     zeigePlaene();
+    zeigePreise();
   }
 
   // --- Bedienung ---

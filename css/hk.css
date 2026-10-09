@@ -333,6 +333,17 @@ h2.erste { margin-top: 0; }
   border: 1px solid var(--hk-navy-700); border-radius: 2px;
 }
 
+.kosten { margin: 0 0 4px; font-size: 16px; }
+.kosten strong { color: var(--hk-navy-900); }
+.preisbasis { margin: 0 0 14px; padding-left: 18px; font-size: 14px; color: var(--hk-neutral-600); }
+.preisbasis .unsicher { color: #6B4406; } /* Altpreis, DTG-Liste oder geschätzt */
+.summe p { margin: 0; }
+
+.preise-text { margin: 0; font-size: 15px; color: var(--hk-neutral-600); }
+.preise .knoepfe { margin-top: 10px; }
+.knopf.datei { display: inline-flex; align-items: center; }
+.knopf.datei:focus-within { outline: 3px solid rgba(46, 74, 120, 0.35); outline-offset: 1px; }
+
 .formate { margin-top: 14px; }
 .formate summary { cursor: pointer; padding: 10px 0; color: var(--hk-navy-700); font-weight: 600; }
 .haken-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 12px; margin-top: 6px; }
