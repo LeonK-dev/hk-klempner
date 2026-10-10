@@ -21,6 +21,11 @@ Im Programm stehen keine Preise. Die Einkaufspreise kommen aus einer Preisdatei,
 geladen (Reiter „Auftrag“, ganz unten), bleibt im Browser dieses Geräts und geht nie ins Netz.
 Ohne Preisdatei zeigt das Tool Fläche und Gewicht.
 
+## Drucken
+
+Im Reiter „Auftrag“ druckt „Drucken“ die Zuschnittliste mit den Schnittplänen und danach vier
+Profile je Seite (A4 hoch). Zur Durchsicht ohne Drucker: `tests/druck.html` über den Server öffnen.
+
 ## Tests
 
 Im Browser `tests/index.html` über den Server öffnen, oder mit Node.js:

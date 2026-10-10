@@ -63,15 +63,16 @@ function versetzt(pts, d) {
  * @param {SVGSVGElement} svg
  * @param {object} profil
  * @param {number} aktiv  Index des hervorgehobenen Schenkels, -1 für keinen
+ * @param {{breite: number, hoehe: number}} [masse]  feste Größe statt der Bildschirmbreite (Druckblatt)
  */
-export function zeichne(svg, profil, aktiv = -1) {
-  const b = Math.max(svg.clientWidth || 600, 240);
+export function zeichne(svg, profil, aktiv = -1, masse = null) {
+  const b = masse ? masse.breite : Math.max(svg.clientWidth || 600, 240);
   // Am Handy bleibt die Zeichnung flach, damit unter ihr noch Platz zum Tippen ist.
   // Am PC steht die Zeichnung neben der Eingabe und darf hoch sein, auch wenn die Spalte schmal ist.
-  const schmal = b < 480 && !window.matchMedia('(min-width: 880px)').matches;
+  const schmal = !masse && b < 480 && !window.matchMedia('(min-width: 880px)').matches;
   // Solange am Handy die Tastatur offen ist, noch flacher: Darunter muss das Eingabefeld Platz haben.
   const tippt = schmal && document.body.classList.contains('tastatur');
-  const h = Math.round(
+  const h = masse ? masse.hoehe : Math.round(
     tippt ? Math.min(Math.max(b * 0.36, 110), 140)
       : schmal ? Math.min(Math.max(b * 0.5, 160), 220)
         : Math.min(Math.max(b * 0.7, 260), 460),

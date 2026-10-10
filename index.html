@@ -43,9 +43,13 @@
     <div id="positionen"></div>
     <div id="plaene"></div>
     <div class="knoepfe">
+      <button type="button" class="knopf haupt" id="drucken" hidden>Drucken</button>
       <button type="button" class="knopf" data-ansicht="profil">+ Weiteres Profil</button>
       <button type="button" class="knopf" id="auftrag-leeren" hidden>Auftrag leeren</button>
     </div>
+    <label class="haken druck-preise" id="druck-preise-wahl" hidden>
+      <input type="checkbox" id="druck-preise"> Einkaufspreise mitdrucken (nur fürs Büro)
+    </label>
 
     <section class="karte preise" aria-label="Preise">
       <p id="preise-text" class="preise-text"></p>
@@ -158,6 +162,9 @@
       <p class="meldung" id="meldung" role="status"></p>
     </section>
   </main>
+
+  <!-- Druckblatt: wird beim Drucken gebaut, auf dem Bildschirm unsichtbar -->
+  <div id="druck" class="druck"></div>
 
   <script type="module" src="js/app.js"></script>
 </body>

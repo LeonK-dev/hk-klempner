@@ -349,3 +349,111 @@ h2.erste { margin-top: 0; }
 .haken-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 12px; margin-top: 6px; }
 .haken { display: flex; align-items: center; gap: 8px; min-height: 40px; }
 .haken input { width: 22px; height: 22px; accent-color: var(--hk-navy-700); }
+.druck-preise { margin-top: 4px; font-size: 15px; color: var(--hk-neutral-600); }
+.druck-preise[hidden] { display: none; }
+
+/* --- Druckblatt (js/druck.js): A4 hoch, Maße in mm und pt wie beim Aufmaßblatt --- */
+
+#druck { display: none; }
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 14mm 13mm;
+  @bottom-left { font: 400 7pt "Source Sans 3", sans-serif; color: #5B6879; }
+  @bottom-right { font: 400 7pt "Source Sans 3", sans-serif; color: #5B6879; }
+}
+
+@media print {
+  body { background: #FFFFFF; }
+  body > :not(#druck) { display: none !important; }
+  #druck { display: block; }
+}
+
+.druck {
+  color: var(--hk-neutral-800); font: 400 9pt/1.4 var(--schrift-text);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.druck p { margin: 0 0 1.2mm; }
+.d-blatt + .d-blatt { break-before: page; }
+.d-first { height: 4px; background: var(--hk-rot-600); }
+.d-kopf { display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; padding: 6mm 0 4mm; }
+.d-logo { display: block; height: 15mm; width: auto; flex: none; }
+.d-titel { text-align: right; min-width: 0; }
+.d-eyebrow { font: 600 8pt/1.2 var(--schrift-kopf); letter-spacing: 0.14em; text-transform: uppercase; color: var(--hk-ziegel-500); }
+.druck h1 { margin: 1mm 0 0; font: 700 25pt/1.02 var(--schrift-kopf); text-transform: uppercase; color: var(--hk-navy-700); }
+.d-unter { margin-top: 1mm; font-size: 8.5pt; color: var(--hk-neutral-600); }
+.d-info {
+  display: grid; grid-template-columns: 1.35fr 1fr 1fr;
+  border-top: 0.75pt solid var(--hk-navy-700); border-bottom: 0.5pt solid var(--hk-neutral-100); background: var(--hk-neutral-50);
+}
+.d-info > div { padding: 2mm 3mm 2.2mm; border-right: 0.5pt solid var(--hk-neutral-100); }
+.d-info > div:last-child { border-right: 0; }
+.d-lbl { font-weight: 600; font-size: 6.5pt; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hk-neutral-600); }
+.d-val { min-height: 1.3em; font-size: 9pt; line-height: 1.3; }
+.d-bemerkung { padding: 2mm 3mm; border-bottom: 0.5pt solid var(--hk-neutral-100); }
+.druck .d-buero { margin: 3mm 0 0; padding: 2mm 3mm; background: var(--hk-warnung-100); color: #6B4406; font-weight: 600; }
+
+.d-material { margin-top: 7mm; break-inside: avoid; } /* passt es nicht auf eine Seite, bricht der Browser trotzdem */
+.d-mat-kopf {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 4mm;
+  margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.75pt solid var(--hk-navy-700);
+  break-after: avoid;
+}
+.druck h2 { margin: 0; font: 700 12pt/1.2 var(--schrift-kopf); letter-spacing: 0.04em; text-transform: uppercase; color: var(--hk-navy-700); }
+.d-urteil { font-size: 8pt; font-weight: 600; }
+.d-urteil.gut { color: #1F5C39; }
+.d-urteil.mittel { color: #6B4406; }
+.d-urteil.schlecht { color: var(--hk-fehler-600); }
+.druck .d-fehler { color: var(--hk-fehler-600); font-weight: 600; }
+.druck .kosten { font-size: 9pt; }
+.druck .preisbasis { margin: 0 0 1.5mm; padding-left: 4mm; font-size: 7.5pt; }
+.druck .hinweis { margin: 1.5mm 0; padding: 1.5mm 2.5mm; font-size: 8.5pt; }
+.d-bleche { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 3mm 8mm; margin: 3mm 0 2mm; }
+.d-blech { min-width: 42mm; margin: 0; break-inside: avoid; }
+.d-blech figcaption { margin-bottom: 1mm; font-size: 8.5pt; }
+.d-blech .blech-bild { max-width: 100%; } /* Breite setzt druck.js passend zur Blechlänge */
+.dicke { text-transform: none; } /* "0,7 mm" bleibt klein, auch in Versal-Überschriften */
+
+.d-liste { width: 100%; border-collapse: collapse; font-size: 9pt; font-variant-numeric: tabular-nums; }
+.d-liste th {
+  padding: 1.2mm 1.5mm; text-align: left; border-bottom: 0.75pt solid var(--hk-navy-700);
+  font: 700 7.5pt/1.2 var(--schrift-kopf); letter-spacing: 0.08em; text-transform: uppercase; color: var(--hk-navy-700);
+}
+.d-liste td { padding: 1.6mm 1.5mm; border-bottom: 0.5pt solid var(--hk-neutral-100); }
+.d-liste tr { break-inside: avoid; }
+.d-liste .r { text-align: right; }
+.d-liste .d-k { width: 20mm; }
+.d-kasten {
+  display: inline-block; width: 3.8mm; height: 3.8mm; vertical-align: -0.9mm;
+  border: 0.9pt solid var(--hk-navy-700); border-radius: 0.6mm; background: #FFFFFF;
+}
+.d-punkt {
+  display: inline-block; width: 3mm; height: 3mm; margin-right: 1.5mm; vertical-align: -0.4mm;
+  border: 0.5pt solid var(--hk-navy-700); border-radius: 0.4mm;
+}
+.druck .d-summe { margin-top: 6mm; padding: 2.5mm 3mm; border-top: 0.75pt solid var(--hk-navy-700); background: var(--hk-neutral-50); }
+
+/* Profilseiten: 2 × 2 Karten. Inhaltshöhe der Seite 272 mm, davon 249 mm für die Karten. */
+.d-seitenkopf {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 4mm;
+  padding: 2.5mm 0 2mm; border-bottom: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; color: var(--hk-neutral-600);
+}
+.d-seitenkopf b { font: 700 11pt/1.2 var(--schrift-kopf); letter-spacing: 0.06em; text-transform: uppercase; color: var(--hk-navy-700); }
+.d-raster { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 122mm; gap: 5mm 6mm; margin-top: 4mm; }
+.d-profil {
+  display: flex; flex-direction: column; min-width: 0; padding: 3mm;
+  border: 0.5pt solid var(--hk-neutral-200); border-radius: 1.5mm; break-inside: avoid;
+}
+.d-p-kopf { display: flex; align-items: center; gap: 2.5mm; }
+.d-nr {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; min-width: 8mm; height: 7mm; padding: 0 1.5mm;
+  border: 0.5pt solid var(--hk-navy-700); border-radius: 1mm; font: 700 10pt/1 var(--schrift-kopf); color: var(--hk-navy-900);
+}
+.d-p-kopf strong { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10pt; }
+.d-haken { display: inline-flex; align-items: center; gap: 1.5mm; flex: none; font-size: 8pt; color: var(--hk-neutral-600); }
+.d-schnitt { margin: 2mm 0; }
+.d-p-zahlen { display: grid; grid-template-columns: auto 1fr; gap: 4mm; padding-top: 2mm; border-top: 0.5pt solid var(--hk-neutral-100); }
+.d-p-zahlen .d-val + .d-lbl { margin-top: 1.2mm; }
+.d-z { font: 800 22pt/1 var(--schrift-kopf); color: var(--hk-ziegel-500); margin-top: 0.8mm; }
+.d-z small { margin-left: 0.8mm; font-size: 11pt; font-weight: 700; }
+.d-folge { margin-top: auto; padding-top: 2mm; border-top: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; }

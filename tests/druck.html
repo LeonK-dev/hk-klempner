@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HK Klempner – Druckblatt zur Durchsicht</title>
+  <link rel="stylesheet" href="../css/hk.css">
+  <style>
+    /* Auf dem Bildschirm die Seiten als A4-Blätter zeigen. Gedruckt gilt nur css/hk.css. */
+    @media screen {
+      body { background: #D3DAE4; }
+      #druck { display: block; }
+      .d-blatt { width: 210mm; min-height: 297mm; margin: 8mm auto; padding: 12mm 14mm 13mm; background: #FFFFFF;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
+    }
+  </style>
+</head>
+<body>
+  <div id="druck" class="druck"></div>
+  <script type="module">
+    // Beispielauftrag. Mit ?preise=1 auch mit Preisen; die Preise hier sind erfunden, keine echten Einkaufspreise.
+    import { VORLAGEN, ausVorlage } from '../js/kern/vorlagen.js';
+    import { PREISDATEI, lesePreise } from '../js/kern/preise.js';
+    import { baueDruck } from '../js/druck.js';
+
+    const FARBEN = ['#DCE4F0', '#F6E9E1', '#E3F2E9', '#FBF0DC', '#E9E4F2', '#DDEFF0'];
+    const vorlage = (id) => ausVorlage(VORLAGEN.find((v) => v.id === id));
+    const stueck = (anzahl, laenge) => ({ art: 'stueck', anzahl, laenge, meter: 0, ueberdeckung: 0 });
+    const lfm = (meter, ueberdeckung) => ({ art: 'lfm', anzahl: 0, laenge: 0, meter, ueberdeckung });
+    const positionen = [
+      ['traufblech', 'titanzink', 0.7, lfm(23.5, 100)],
+      ['ortgangblech', 'titanzink', 0.7, stueck(6, 2000)],
+      ['kappleiste', 'titanzink', 0.7, stueck(4, 1500)],
+      ['mauerabdeckung', 'kupfer', 0.7, stueck(5, 3000)],
+      ['kehle', 'titanzink', 0.7, stueck(2, 3000)],
+    ].map(([v, material, dicke, menge], i) => ({ id: String(i), profil: vorlage(v), material, dicke, menge }));
+
+    const preise = new URLSearchParams(location.search).has('preise') ? lesePreise({
+      ...PREISDATEI, stand: '2026-10-10', quelle: 'Beispiel',
+      preise: [
+        ['titanzink', 'tafel-1000x2000', 5, 'Rechnung'], ['titanzink', 'tafel-1000x3000', 5, 'Rechnung'],
+        ['titanzink', 'coil-1000', 6, 'DTG Liste'], ['titanzink', 'coil-670', 6, 'DTG Liste'], ['titanzink', 'coil-600', 6, 'DTG Liste'],
+        ['titanzink', 'coil-500', 6, 'DTG Liste'], ['titanzink', 'coil-400', 6, 'DTG Liste'],
+        ['kupfer', 'tafel-1000x2000', 15, 'Altpreis'], ['kupfer', 'tafel-1000x3000', 15, 'Altpreis'], ['kupfer', 'coil-1000', 15, 'DTG Liste'],
+      ].map(([material, format, preis, herkunft]) => ({
+        material, dicke: 0.7, format, preis, einheit: 'kg', herkunft, haendler: 'Beispiel', datum: '2026-10-01',
+      })),
+    }) : null;
+
+    baueDruck(document.getElementById('druck'), {
+      kopf: { bauvorhaben: 'Musterstraße 1, Bonn', bearbeiter: 'Büro', bemerkung: 'Beispiel zur Durchsicht' },
+      positionen,
+      formateAus: {},
+      preise,
+      farbeFuer: (pos) => FARBEN[(Number(pos.slice(1)) - 1) % FARBEN.length],
+    });
+    document.title = 'Druckblatt fertig';
+  </script>
+</body>
+</html>

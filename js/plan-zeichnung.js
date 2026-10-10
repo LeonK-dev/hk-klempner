@@ -18,13 +18,15 @@ function el(name, attribute = {}, text) {
  * @param {object} blech         aus zuschnittplan.js
  * @param {(pos: string) => string} farbeFuer  Füllfarbe je Position
  * @param {number} laengeMax     Länge, die die volle Breite der Zeichnung füllt
+ * @param {number} [breite]      feste Breite für laengeMax statt der Bildschirmbreite (Druckblatt).
+ *                               Das Bild ist dann nur so breit wie das Blech, damit kurze nebeneinander passen.
  */
-export function zeichneBlech(svg, blech, farbeFuer, laengeMax = 3100) {
-  const breitePx = Math.max(svg.clientWidth || 600, 240);
+export function zeichneBlech(svg, blech, farbeFuer, laengeMax = 3100, breite = 0) {
+  const breitePx = breite || Math.max(svg.clientWidth || 600, 240);
   const m = (breitePx - 2) / laengeMax;
   const w = blech.l * m;
   const h = blech.format.b * m;
-  svg.setAttribute('viewBox', `0 0 ${breitePx} ${(h + 2).toFixed(1)}`);
+  svg.setAttribute('viewBox', `0 0 ${breite ? (w + 2).toFixed(1) : breitePx} ${(h + 2).toFixed(1)}`);
   svg.replaceChildren();
   const g = el('g', { transform: 'translate(1,1)' });
   svg.append(g);
