@@ -3,7 +3,7 @@
 // oder gedreht wird und wo es an den Wangen eng wird. Festlegungen in PLAN.md (Maschine und Umkantreihenfolge).
 //
 // An der ECT wird erst der Zuschnitt eingegeben, dann je Kantung Biegewinkel und Anschlagtiefe
-// (Leon, 10.10.2026; Schechtl: „Eingabe von Biegewinkel, Tiefenanschlagmaß, Abhubhöhe, Umschlag und Zuschnitt“).
+// (Werkstatt, 10.10.2026; Schechtl: „Eingabe von Biegewinkel, Tiefenanschlagmaß, Abhubhöhe, Umschlag und Zuschnitt“).
 //
 // Koordinaten an der Maschine, Schnitt quer zur Biegekante, in mm: Ursprung an der Biegekante, x zeigt in
 // die Maschine (unter die Oberwange, zum Tiefenanschlag), y nach oben. Der eingespannte Teil liegt bei x > 0
