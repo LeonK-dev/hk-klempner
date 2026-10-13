@@ -85,6 +85,32 @@ export function kostenHtml(k) {
     <ul class="preisbasis">${basis}</ul>`;
 }
 
+// --- Kantfolge (kern/kantfolge.js) ---
+
+/** Was zwischen zwei Schritten mit dem Blech passiert: [Wort, Satz für den Bildschirm, kurz für das Druckblatt] */
+export const UMLEGEN = {
+  wenden: ['Wenden', 'Über die lange Seite umdrehen. Dann liegt die andere Seite oben und die andere Kante am Anschlag.',
+    'andere Seite oben, andere Kante an den Anschlag'],
+  drehen: ['Drehen', 'Flach auf dem Tisch umdrehen. Dann liegt die andere Kante am Anschlag, oben bleibt dieselbe Seite.',
+    'andere Kante an den Anschlag, gleiche Seite oben'],
+  'wenden und drehen': ['Wenden und drehen', 'Über die Stirnseite umdrehen. Dann liegt die andere Seite oben, am Anschlag bleibt dieselbe Kante.',
+    'andere Seite oben, gleiche Kante am Anschlag'],
+};
+
+export const winkelText = (s) => (s.umschlag ? (s.spalt ? 'Umschlag offen' : 'Umschlag') : `${mm(s.biegewinkel)}°`);
+export const lageText = (s) => `${s.seite} am Anschlag, ${s.oben} oben`;
+export const statusKlasse = (s) => ({ eng: 'eng', stoesst: 'stoesst', 'geht nicht': 'geht-nicht' }[s.status] || '');
+
+/** Warnung und Abhub eines Schritts in einem Satz, leer wenn nichts zu sagen ist */
+export function kantHinweis(s) {
+  const teile = [];
+  if (s.status === 'geht nicht') teile.push(s.grund);
+  else if (s.status === 'stoesst') teile.push('stößt an der Wange an');
+  else if (s.status === 'eng') teile.push(`eng, ${s.luft ?? 0} mm Luft`);
+  if (s.abhub) teile.push(`Abhub ${s.abhub} mm`);
+  return teile.join(', ');
+}
+
 /** Urteil zum Verschnitt in Prozent: [Wort, Farbklasse] */
 export function urteil(prozent) {
   return prozent < 0.05 ? ['Kein Verschnitt', 'gut']

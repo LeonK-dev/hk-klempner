@@ -1,23 +1,25 @@
-// Druckblatt, A4 hoch: erst die Zuschnittliste mit den Schnittplänen je Material, danach vier Profile
-// je Seite mit Schnitt, Maßen und Menge (Festlegung 10.10.2026). Die Werkstatt hakt ab, was geschnitten
+// Druckblatt, A4 hoch: erst die Zuschnittliste mit den Schnittplänen je Material, danach die Profile mit Schnitt,
+// Maßen, Menge und Kantfolge, je Reihe zwei, meist vier je Seite (Festlegung 10.10.2026). Die Werkstatt hakt ab, was geschnitten
 // und gekantet ist. Einkaufspreise nur, wenn sie beim Drucken ausdrücklich gewählt sind.
 //
 // Gebaut wird in #druck. Auf dem Bildschirm ist #druck unsichtbar, beim Drucken nur er (css/hk.css).
 
 import { gruppen, planeGruppe } from './kern/auftrag.js';
+import { planeKantfolge } from './kern/kantfolge.js';
 import { MASCHINE } from './kern/material.js';
 import { kosten } from './kern/preise.js';
 import { ABSCHLUESSE, zuschnitt } from './kern/profil.js';
 import { gleicheZusammen } from './kern/zuschnittplan.js';
 import {
-  bedarfText, blechName, datum, dez, esc, euro, kostenHtml, mm, urteil, verbrauchText,
+  UMLEGEN, bedarfText, blechName, datum, dez, esc, euro, kantHinweis, kostenHtml, mm, statusKlasse, urteil,
+  verbrauchText, winkelText,
 } from './format.js';
 import { LOGO } from './logo.js';
 import { zeichneBlech } from './plan-zeichnung.js';
 import { zeichne } from './zeichnung.js';
 
-const JE_SEITE = 4;
-const PROFIL = { breite: 420, hoehe: 350 }; // Zeichenfläche, gedruckt etwa 82 mm breit: Maßzahlen gut 3 mm hoch
+const JE_REIHE = 2; // Profile nebeneinander. Meist passen zwei Reihen auf eine Seite, bei langer Kantfolge eine.
+const PROFIL = { breite: 420, hoehe: 230 }; // Zeichenfläche, gedruckt etwa 82 mm breit: Maßzahlen gut 3 mm hoch
 // Schnittplan: die volle Arbeitslänge der Maschine ist 560 Einheiten und 120 mm breit, Beschriftung so etwa 7 pt
 const BLECH = 560;
 const BLECH_MM = 120;
@@ -109,6 +111,29 @@ function summeHtml(gr, ergebnisse, kostenListe) {
     ohne.length ? ` Nicht enthalten: ${esc(ohne.join(', '))}.` : ''}</p>`;
 }
 
+// Kantfolge an der MBM 310 als kleine Tabelle unten in der Profilkarte. Hinweise und Umlegen stehen in eigenen
+// Zeilen, damit die Spalten nicht umbrechen und vier Karten auf eine Seite passen.
+function kantHtml(profil) {
+  const plan = planeKantfolge(profil);
+  if (!plan.schritte.length) return '';
+  const zeile = (klasse, text) => `<tr class="${klasse}"><td></td><td colspan="4">${text}</td></tr>`;
+  const zeilen = plan.schritte.map((s) => {
+    const hinweis = kantHinweis(s);
+    return `${s.vorher ? zeile('d-kf-um', `<b>${UMLEGEN[s.vorher][0]}:</b> ${UMLEGEN[s.vorher][2]}`) : ''}
+    <tr class="${statusKlasse(s)}">
+      <td class="d-kf-nr">${s.nr}</td>
+      <td>${mm(s.zwischen[0])} | ${mm(s.zwischen[1])}</td>
+      <td class="r"><b>${mm(s.anschlag)}</b></td>
+      <td class="r"><b>${winkelText(s)}</b></td>
+      <td>${s.seite} · ${s.oben} oben</td>
+    </tr>${hinweis ? zeile(`d-kf-hinweis ${statusKlasse(s)}`, esc(hinweis)) : ''}`;
+  }).join('');
+  const um = plan.umlegen === 0 ? 'ohne Umlegen' : plan.umlegen === 1 ? 'einmal umlegen' : `${plan.umlegen}-mal umlegen`;
+  return `<div class="d-kf"><div class="d-lbl">MBM 310 · Zuschnitt ${mm(zuschnitt(profil))} · ${um}${plan.vonHand ? ' · Folge von Hand' : ''}</div>
+    <table class="d-kf-tab"><thead><tr><th></th><th>Kante</th><th class="r">Anschlag</th><th class="r">Winkel</th><th>Lage</th></tr></thead>
+    <tbody>${zeilen}</tbody></table></div>`;
+}
+
 function profilHtml(p, g, r, farbeFuer) {
   return `<article class="d-profil">
     <div class="d-p-kopf"><span class="d-nr" style="background:${farbeFuer(p.pos)}">${p.pos}</span>
@@ -120,6 +145,7 @@ function profilHtml(p, g, r, farbeFuer) {
         <div class="d-lbl">Menge</div><div class="d-val">${mengeText(p, r.stuecke[p.pos] || [])}</div></div>
     </div>
     <div class="d-folge"><div class="d-lbl">Von A nach E</div>${esc(folge(p.profil))}</div>
+    ${kantHtml(p.profil)}
   </article>`;
 }
 
@@ -139,17 +165,18 @@ export function baueDruck(ziel, { kopf, positionen, formateAus, preise, farbeFue
     ${gr.map((g, i) => materialHtml(g, ergebnisse[i], i, kostenListe[i], farbeFuer)).join('')}
     ${preise ? summeHtml(gr, ergebnisse, kostenListe) : ''}</section>`;
 
-  // Profile in der Reihenfolge des Auftrags, je Seite vier
+  // Profile in der Reihenfolge des Auftrags, paarweise in Reihen. Eine Reihe wird nie über zwei Seiten
+  // geteilt, so entscheidet der Browser, ob eine oder zwei Reihen auf die Seite passen.
   const zuPos = new Map();
   gr.forEach((g, i) => g.positionen.forEach((p) => zuPos.set(p.pos, { p, g, r: ergebnisse[i] })));
   const alle = positionen.map((x, i) => zuPos.get(`P${i + 1}`)).filter(Boolean);
-  const seiten = [];
-  for (let i = 0; i < alle.length; i += JE_SEITE) {
-    const karten = alle.slice(i, i + JE_SEITE).map(({ p, g, r }) => profilHtml(p, g, r, farbeFuer)).join('');
-    seiten.push(`<section class="d-blatt d-profile"><div class="d-first"></div>
-      <div class="d-seitenkopf"><b>Profile</b><span>${esc(kopf.bauvorhaben || '')}</span><span>${heute()}</span></div>
-      <div class="d-raster">${karten}</div></section>`);
+  const reihen = [];
+  for (let i = 0; i < alle.length; i += JE_REIHE) {
+    reihen.push(`<div class="d-reihe">${alle.slice(i, i + JE_REIHE).map(({ p, g, r }) => profilHtml(p, g, r, farbeFuer)).join('')}</div>`);
   }
+  const seiten = alle.length ? [`<section class="d-blatt d-profile"><div class="d-first"></div>
+      <div class="d-seitenkopf"><b>Profile</b><span>${esc(kopf.bauvorhaben || '')}</span><span>${heute()}</span></div>
+      ${reihen.join('')}</section>`] : [];
   ziel.innerHTML = liste + seiten.join('');
 
   ziel.querySelectorAll('.blech-bild').forEach((svg) => {

@@ -34,11 +34,13 @@ export function zahl(text) {
 }
 
 export function kopie(p) {
-  return {
+  const q = {
     ...p,
     schenkel: p.schenkel.map((s) => ({ ...s })),
     kantungen: p.kantungen.map((k) => ({ ...k })),
   };
+  if (p.kantfolge) q.kantfolge = [...p.kantfolge];
+  return q;
 }
 
 // Ungültige Winkel (beim Tippen) zählen vorläufig als 90°, damit die Zeichnung nicht springt
@@ -101,6 +103,10 @@ export function normalisiert(p) {
     kantungen.push({ w: k.w === undefined ? 90 : Number(k.w), r: k.r === -1 ? -1 : 1 });
   }
   const neu = Number.isFinite(Number(p.lage)) && p.lage !== null && p.lage !== undefined;
+  // Kantfolge von Hand: nur behalten, wenn jede Kantung genau einmal vorkommt
+  const folge = Array.isArray(p.kantfolge) ? p.kantfolge.map(Number) : null;
+  const folgeGilt = folge && folge.length === kantungen.length
+    && [...folge].sort((a, b) => a - b).every((x, i) => x === i);
   return mitAnker({
     name: String(p.name || 'Profil'),
     vorlage: p.vorlage || null,
@@ -108,6 +114,7 @@ export function normalisiert(p) {
     sicht: p.sicht === -1 ? -1 : 1,
     schenkel,
     kantungen,
+    ...(folgeGilt ? { kantfolge: folge } : {}),
     ...(neu
       ? { fest: festVon({ fest: p.fest, schenkel }), lage: Number(p.lage) }
       : { start: Number(p.start) || 0 }),
@@ -253,6 +260,7 @@ export function pruefe(p) {
 
 export function mitSchenkel(p, ende, schenkel = { l: 50 }, kantung = { w: 90, r: 1 }) {
   const q = mitAnker(p);
+  delete q.kantfolge; // die Kantungen verschieben sich, eine Folge von Hand gilt nicht mehr
   if (ende === 'anfang') {
     q.schenkel.unshift({ ...schenkel });
     q.kantungen.unshift({ ...kantung });
@@ -268,6 +276,7 @@ export function ohneSchenkel(p, i) {
   const q = mitAnker(p);
   const n = q.schenkel.length;
   if (n <= 1) return q;
+  delete q.kantfolge;
   if (i === q.fest) { // der Nachbar wird fest und behält seine jetzige Richtung
     const nachbar = i === n - 1 ? i - 1 : i + 1;
     const lageNachbar = richtung(q, nachbar);

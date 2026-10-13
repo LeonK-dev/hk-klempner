@@ -349,6 +349,36 @@ h2.erste { margin-top: 0; }
 .haken-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 12px; margin-top: 6px; }
 .haken { display: flex; align-items: center; gap: 8px; min-height: 40px; }
 .haken input { width: 22px; height: 22px; accent-color: var(--hk-navy-700); }
+/* --- Kantfolge an der MBM 310 (Profil) --- */
+
+@media (min-width: 880px) {
+  .kantfolge { grid-column: 2; }
+}
+.kf-liste { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.kf-schritt {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px;
+  border: 1px solid var(--hk-neutral-200); border-radius: 8px;
+}
+.kf-schritt.eng { border-color: var(--hk-warnung-600); background: var(--hk-warnung-100); }
+.kf-schritt.stoesst, .kf-schritt.geht-nicht { border-color: var(--hk-fehler-600); background: var(--hk-fehler-100); }
+.kf-nr {
+  display: flex; align-items: center; justify-content: center; flex: 0 0 32px; height: 32px;
+  border-radius: 50%; background: var(--hk-navy-700); color: var(--hk-neutral-0); font: 700 16px/1 var(--schrift-kopf);
+}
+.kf-inhalt { flex: 1 1 auto; min-width: 0; }
+.kf-werte { display: flex; flex-wrap: wrap; gap: 2px 18px; }
+.kf-werte span { display: inline-flex; align-items: baseline; gap: 6px; }
+.kf-werte small { font-size: 13px; color: var(--hk-neutral-600); }
+.kf-werte b { font: 700 24px/1.1 var(--schrift-kopf); color: var(--hk-navy-900); }
+.kf-text { margin: 4px 0 0; font-size: 15px; color: var(--hk-neutral-600); }
+.kf-hinweis { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: #6B4406; }
+.kf-schritt.stoesst .kf-hinweis, .kf-schritt.geht-nicht .kf-hinweis { color: var(--hk-fehler-600); }
+.kf-knoepfe { display: flex; flex-direction: column; gap: 4px; }
+.kf-knoepfe .knopf { min-width: 40px; min-height: 34px; padding: 0 8px; }
+.kf-knoepfe .knopf:disabled { opacity: 0.3; cursor: default; }
+.kf-umlegen { padding: 4px 10px 4px 52px; font-size: 15px; color: var(--hk-ziegel-500); }
+.kf-hand { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 15px; color: var(--hk-neutral-600); }
+
 .druck-preise { margin-top: 4px; font-size: 15px; color: var(--hk-neutral-600); }
 .druck-preise[hidden] { display: none; }
 
@@ -433,13 +463,15 @@ h2.erste { margin-top: 0; }
 }
 .druck .d-summe { margin-top: 6mm; padding: 2.5mm 3mm; border-top: 0.75pt solid var(--hk-navy-700); background: var(--hk-neutral-50); }
 
-/* Profilseiten: 2 × 2 Karten. Inhaltshöhe der Seite 272 mm, davon 249 mm für die Karten. */
+/* Profilseiten: Karten paarweise in Reihen, Inhaltshöhe der Seite 272 mm */
 .d-seitenkopf {
   display: flex; align-items: baseline; justify-content: space-between; gap: 4mm;
   padding: 2.5mm 0 2mm; border-bottom: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; color: var(--hk-neutral-600);
 }
 .d-seitenkopf b { font: 700 11pt/1.2 var(--schrift-kopf); letter-spacing: 0.06em; text-transform: uppercase; color: var(--hk-navy-700); }
-.d-raster { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 122mm; gap: 5mm 6mm; margin-top: 4mm; }
+/* Je Reihe zwei Karten, gleich hoch. Eine Reihe bleibt auf einer Seite. */
+.d-reihe { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 5mm; break-inside: avoid; }
+.d-seitenkopf + .d-reihe { margin-top: 4mm; }
 .d-profil {
   display: flex; flex-direction: column; min-width: 0; padding: 3mm;
   border: 0.5pt solid var(--hk-neutral-200); border-radius: 1.5mm; break-inside: avoid;
@@ -456,4 +488,20 @@ h2.erste { margin-top: 0; }
 .d-p-zahlen .d-val + .d-lbl { margin-top: 1.2mm; }
 .d-z { font: 800 22pt/1 var(--schrift-kopf); color: var(--hk-ziegel-500); margin-top: 0.8mm; }
 .d-z small { margin-left: 0.8mm; font-size: 11pt; font-weight: 700; }
-.d-folge { margin-top: auto; padding-top: 2mm; border-top: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; }
+.d-folge { margin-top: 2mm; padding-top: 2mm; border-top: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; }
+.d-kf { margin-top: auto; padding-top: 2mm; }
+.d-kf-tab { width: 100%; margin-top: 1mm; border-collapse: collapse; font-size: 7.5pt; font-variant-numeric: tabular-nums; }
+.d-kf-tab th {
+  padding: 0.6mm 1mm; text-align: left; border-bottom: 0.75pt solid var(--hk-navy-700);
+  font: 700 6.5pt/1.2 var(--schrift-kopf); letter-spacing: 0.06em; text-transform: uppercase; color: var(--hk-navy-700);
+}
+.d-kf-tab td { padding: 0.5mm 1mm; border-bottom: 0.5pt solid var(--hk-neutral-100); vertical-align: top; white-space: nowrap; }
+.d-kf-tab .r { text-align: right; white-space: nowrap; }
+.d-kf-tab b { font-size: 8.5pt; color: var(--hk-navy-900); }
+.d-kf-nr { font-weight: 700; color: var(--hk-navy-700); }
+.d-kf-um td, .d-kf-hinweis td { padding: 0.3mm 1mm 0.6mm; white-space: normal; font-size: 7pt; }
+.d-kf-um td { border-bottom: 0; color: var(--hk-ziegel-500); }
+.d-kf-hinweis td { color: #6B4406; font-weight: 600; }
+.d-kf-hinweis.stoesst td, .d-kf-hinweis.geht-nicht td { color: var(--hk-fehler-600); }
+.d-kf-tab tr.eng td { background: var(--hk-warnung-100); }
+.d-kf-tab tr.stoesst td, .d-kf-tab tr.geht-nicht td { background: var(--hk-fehler-100); }

@@ -3,5 +3,6 @@ import './kern.test.js';
 import './plan.test.js';
 import './preise.test.js';
 import './druck.test.js';
+import './kantfolge.test.js';
 
 export { ergebnisse } from './hilfe.js';

@@ -6,7 +6,11 @@ import {
   ohneSchenkel, pruefe, zahl, zuschnitt,
 } from './kern/profil.js';
 import { VORLAGEN, ausVorlage } from './kern/vorlagen.js';
+import { planeKantfolge } from './kern/kantfolge.js';
 import { erstelleAuftrag } from './auftrag-ansicht.js';
+import {
+  UMLEGEN, esc, kantHinweis, lageText, statusKlasse, winkelText,
+} from './format.js';
 import { zeichne } from './zeichnung.js';
 
 const SPEICHER = {
@@ -194,8 +198,66 @@ function zeigeErgebnis() {
     zeile.classList.toggle('falsch', hinweise.some((h) => h.kantung === i));
   });
 
+  zeigeKantfolge(hinweise.some((h) => h.art === 'fehler'));
   schreib(SPEICHER.entwurf, profil);
 }
+
+// Kantfolge an der Maschine: Anschlagtiefe und Biegewinkel groß, weil sie an der ECT eingetippt werden
+function zeigeKantfolge(fehlerhaft) {
+  const ziel = $('kantfolge');
+  if (fehlerhaft) {
+    ziel.innerHTML = '<p class="hilfe">Die Kantfolge erscheint, sobald das Profil keine Fehler mehr hat.</p>';
+    return;
+  }
+  const plan = planeKantfolge(profil);
+  if (!plan.schritte.length) {
+    ziel.innerHTML = '<p class="hilfe">Ein gerades Blech ohne Kantung: nur zuschneiden.</p>';
+    return;
+  }
+  const n = plan.schritte.length;
+  const liste = plan.schritte.map((s, i) => {
+    const um = s.vorher ? `<li class="kf-umlegen"><b>${UMLEGEN[s.vorher][0]}:</b> ${UMLEGEN[s.vorher][1]}</li>` : '';
+    const hinweis = kantHinweis(s);
+    return `${um}<li class="kf-schritt ${statusKlasse(s)}">
+      <span class="kf-nr">${s.nr}</span>
+      <div class="kf-inhalt">
+        <div class="kf-werte">
+          <span><small>Anschlag</small><b>${mm(s.anschlag)}</b> mm</span>
+          <span><small>Biegewinkel</small><b>${winkelText(s)}</b></span>
+        </div>
+        <p class="kf-text">Kante zwischen ${mm(s.zwischen[0])} und ${mm(s.zwischen[1])} · ${lageText(s)}</p>
+        ${hinweis ? `<p class="kf-hinweis">${esc(hinweis)}</p>` : ''}
+      </div>
+      <div class="kf-knoepfe">
+        <button type="button" class="knopf klein" data-hoch="${i}"${i === 0 ? ' disabled' : ''} aria-label="Schritt ${s.nr} früher">↑</button>
+        <button type="button" class="knopf klein" data-runter="${i}"${i === n - 1 ? ' disabled' : ''} aria-label="Schritt ${s.nr} später">↓</button>
+      </div>
+    </li>`;
+  }).join('');
+  const umlegen = plan.umlegen === 0 ? 'ohne Umlegen' : plan.umlegen === 1 ? 'einmal umlegen' : `${plan.umlegen}-mal umlegen`;
+  ziel.innerHTML = `<p class="hilfe">An der ECT zuerst den Zuschnitt <b>${mm(zuschnitt(profil))} mm</b> eingeben, dann je Schritt
+      Anschlagtiefe und Biegewinkel. ${n} ${n === 1 ? 'Schritt' : 'Schritte'}, ${umlegen}.</p>
+    ${plan.vonHand ? '<p class="kf-hand">Reihenfolge von Hand festgelegt. <button type="button" class="knopf klein" data-automatisch>Wieder automatisch</button></p>' : ''}
+    <ol class="kf-liste">${liste}</ol>
+    <p class="hilfe klein">Ob etwas an den Wangen anstößt, rechnet das Tool mit den Maßen aus dem Schechtl-Prospekt.
+      Mit den Pfeilen lässt sich die Reihenfolge ändern.</p>`;
+}
+
+$('kantfolge').addEventListener('click', (e) => {
+  const knopf = e.target.closest('button');
+  if (!knopf) return;
+  if (knopf.hasAttribute('data-automatisch')) {
+    delete profil.kantfolge;
+  } else {
+    const folge = planeKantfolge(profil).schritte.map((s) => s.kantung);
+    const i = Number(knopf.dataset.hoch ?? knopf.dataset.runter);
+    const j = knopf.dataset.hoch !== undefined ? i - 1 : i + 1;
+    if (j < 0 || j >= folge.length) return;
+    [folge[i], folge[j]] = [folge[j], folge[i]];
+    profil.kantfolge = folge;
+  }
+  zeigeErgebnis();
+});
 
 function zeigeAlles() {
   $('name').value = profil.name;
