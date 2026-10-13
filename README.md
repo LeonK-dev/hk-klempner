@@ -23,8 +23,8 @@ Ohne Preisdatei zeigt das Tool Fläche und Gewicht.
 
 ## Drucken
 
-Im Reiter „Auftrag“ druckt „Drucken“ die Zuschnittliste mit den Schnittplänen und danach vier
-Profile je Seite (A4 hoch). Zur Durchsicht ohne Drucker: `tests/druck.html` über den Server öffnen.
+Im Reiter „Auftrag“ druckt „Drucken“ die Zuschnittliste mit den Schnittplänen und danach die
+Profile als Streifen, links die Zeichnung, rechts Zuschnitt und Kantfolge, meist vier je Seite (A4 hoch). Zur Durchsicht ohne Drucker: `tests/druck.html` über den Server öffnen.
 
 ## Tests
 

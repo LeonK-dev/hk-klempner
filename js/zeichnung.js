@@ -63,7 +63,8 @@ function versetzt(pts, d) {
  * @param {SVGSVGElement} svg
  * @param {object} profil
  * @param {number} aktiv  Index des hervorgehobenen Schenkels, -1 für keinen
- * @param {{breite: number, hoehe: number}} [masse]  feste Größe statt der Bildschirmbreite (Druckblatt)
+ * @param {{breite: number, hoehe: number, randOben?: number, legende?: boolean}} [masse]  feste Größe statt der
+ *   Bildschirmbreite (Druckblatt), randOben für oben und unten, legende: false ohne den Hinweis „Sichtseite“
  */
 export function zeichne(svg, profil, aktiv = -1, masse = null) {
   const b = masse ? masse.breite : Math.max(svg.clientWidth || 600, 240);
@@ -78,6 +79,7 @@ export function zeichne(svg, profil, aktiv = -1, masse = null) {
         : Math.min(Math.max(b * 0.7, 260), 460),
   );
   const rand = tippt ? RAND_TIPPT : schmal ? RAND_SCHMAL : RAND;
+  const randOben = masse && masse.randOben !== undefined ? masse.randOben : rand;
   svg.setAttribute('viewBox', `0 0 ${b} ${h}`);
   svg.replaceChildren();
 
@@ -86,7 +88,7 @@ export function zeichne(svg, profil, aktiv = -1, masse = null) {
   let r = rahmen(v.punkte);
   const massstab = Math.min(
     (b - 2 * rand) / Math.max(r.breite, 1),
-    (h - 2 * rand) / Math.max(r.hoehe, 1),
+    (h - 2 * randOben) / Math.max(r.hoehe, 1),
     MASSSTAB_MAX,
   );
   v = verlauf(profil, SPALT / massstab);
@@ -226,6 +228,14 @@ export function zeichne(svg, profil, aktiv = -1, masse = null) {
     svg.append(el('line', { class: 'griff', 'data-i': s.schenkel, x1: a.x, y1: a.y, x2: c.x, y2: c.y }));
   });
 
+  if (masse && masse.legende === false) return;
   svg.append(el('line', { class: 'sicht', x1: 12, y1: h - 14, x2: 36, y2: h - 14 }));
   svg.append(el('text', { class: 'legende', x: 42, y: h - 14, 'dominant-baseline': 'central' }, 'Sichtseite'));
+}
+
+/** Höhe, bei der das Profil die Breite b ganz ausfüllt, mit randOben oben und unten (Druckblatt) */
+export function passendeHoehe(profil, b, randOben = RAND) {
+  const r = rahmen(verlauf(profil, 0).punkte);
+  const massstab = Math.min((b - 2 * RAND) / Math.max(r.breite, 1), MASSSTAB_MAX);
+  return r.hoehe * massstab + 2 * randOben;
 }

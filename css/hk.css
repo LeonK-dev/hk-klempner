@@ -463,18 +463,25 @@ h2.erste { margin-top: 0; }
 }
 .druck .d-summe { margin-top: 6mm; padding: 2.5mm 3mm; border-top: 0.75pt solid var(--hk-navy-700); background: var(--hk-neutral-50); }
 
-/* Profilseiten: Karten paarweise in Reihen, Inhaltshöhe der Seite 272 mm */
+/* Profilseiten: je Profil ein Streifen über die ganze Breite, Inhaltshöhe der Seite 272 mm */
 .d-seitenkopf {
   display: flex; align-items: baseline; justify-content: space-between; gap: 4mm;
   padding: 2.5mm 0 2mm; border-bottom: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; color: var(--hk-neutral-600);
 }
 .d-seitenkopf b { font: 700 11pt/1.2 var(--schrift-kopf); letter-spacing: 0.06em; text-transform: uppercase; color: var(--hk-navy-700); }
-/* Je Reihe zwei Karten, gleich hoch. Eine Reihe bleibt auf einer Seite. */
-.d-reihe { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 5mm; break-inside: avoid; }
-.d-seitenkopf + .d-reihe { margin-top: 4mm; }
+.d-sicht { display: inline-flex; align-items: center; gap: 1.5mm; }
+.d-sicht i { display: inline-block; width: 6mm; border-top: 1pt solid var(--hk-ziegel-500); }
+/* Links die Zeichnung (Breite passt zu PROFIL in js/druck.js), rechts die Angaben. Ein Streifen bleibt auf einer Seite. */
 .d-profil {
-  display: flex; flex-direction: column; min-width: 0; padding: 3mm;
-  border: 0.5pt solid var(--hk-neutral-200); border-radius: 1.5mm; break-inside: avoid;
+  display: grid; grid-template-columns: 90mm minmax(0, 1fr); gap: 0 3mm;
+  margin-top: 3mm; padding: 2.2mm 3mm; border: 0.5pt solid var(--hk-neutral-200); border-radius: 1.5mm; break-inside: avoid;
+}
+/* Die Zeichnung steht mittig im freien Platz, die Maße in Worten darunter */
+.d-p-bild { display: flex; flex-direction: column; min-width: 0; }
+.d-p-bild .d-schnitt { margin: auto 0; }
+.d-p-text {
+  display: flex; flex-direction: column; align-self: stretch; min-width: 0;
+  padding-left: 3.5mm; border-left: 0.5pt solid var(--hk-neutral-100);
 }
 .d-p-kopf { display: flex; align-items: center; gap: 2.5mm; }
 .d-nr {
@@ -483,23 +490,26 @@ h2.erste { margin-top: 0; }
 }
 .d-p-kopf strong { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10pt; }
 .d-haken { display: inline-flex; align-items: center; gap: 1.5mm; flex: none; font-size: 8pt; color: var(--hk-neutral-600); }
-.d-schnitt { margin: 2mm 0; }
-.d-p-zahlen { display: grid; grid-template-columns: auto 1fr; gap: 4mm; padding-top: 2mm; border-top: 0.5pt solid var(--hk-neutral-100); }
-.d-p-zahlen .d-val + .d-lbl { margin-top: 1.2mm; }
-.d-z { font: 800 22pt/1 var(--schrift-kopf); color: var(--hk-ziegel-500); margin-top: 0.8mm; }
+.d-p-zahlen {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 5mm;
+  margin-top: 1.5mm; padding-top: 1.5mm; border-top: 0.5pt solid var(--hk-neutral-100);
+}
+.d-angaben { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 0.4mm 2mm; line-height: 1.3; }
+.d-z { font: 800 21pt/1 var(--schrift-kopf); color: var(--hk-ziegel-500); margin-top: 0.8mm; }
 .d-z small { margin-left: 0.8mm; font-size: 11pt; font-weight: 700; }
-.d-folge { margin-top: 2mm; padding-top: 2mm; border-top: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; }
-.d-kf { margin-top: auto; padding-top: 2mm; }
-.d-kf-tab { width: 100%; margin-top: 1mm; border-collapse: collapse; font-size: 7.5pt; font-variant-numeric: tabular-nums; }
+.d-folge { margin-top: 1mm; padding-top: 1.2mm; border-top: 0.5pt solid var(--hk-neutral-100); font-size: 8.5pt; line-height: 1.35; }
+.d-folge .d-lbl { margin-right: 1.5mm; }
+.d-kf { margin-top: 2mm; }
+.d-kf-tab { width: 100%; margin-top: 0.8mm; border-collapse: collapse; font-size: 7.5pt; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .d-kf-tab th {
   padding: 0.6mm 1mm; text-align: left; border-bottom: 0.75pt solid var(--hk-navy-700);
   font: 700 6.5pt/1.2 var(--schrift-kopf); letter-spacing: 0.06em; text-transform: uppercase; color: var(--hk-navy-700);
 }
-.d-kf-tab td { padding: 0.5mm 1mm; border-bottom: 0.5pt solid var(--hk-neutral-100); vertical-align: top; white-space: nowrap; }
+.d-kf-tab td { padding: 0.4mm 1mm; border-bottom: 0.5pt solid var(--hk-neutral-100); vertical-align: top; white-space: nowrap; }
 .d-kf-tab .r { text-align: right; white-space: nowrap; }
 .d-kf-tab b { font-size: 8.5pt; color: var(--hk-navy-900); }
 .d-kf-nr { font-weight: 700; color: var(--hk-navy-700); }
-.d-kf-um td, .d-kf-hinweis td { padding: 0.3mm 1mm 0.6mm; white-space: normal; font-size: 7pt; }
+.d-kf-um td, .d-kf-hinweis td { padding: 0.2mm 1mm 0.4mm; white-space: normal; font-size: 7pt; }
 .d-kf-um td { border-bottom: 0; color: var(--hk-ziegel-500); }
 .d-kf-hinweis td { color: #6B4406; font-weight: 600; }
 .d-kf-hinweis.stoesst td, .d-kf-hinweis.geht-nicht td { color: var(--hk-fehler-600); }
