@@ -157,6 +157,15 @@ h2 {
   margin: 8px 0 0; padding: 10px 12px; border-radius: 6px;
   background: var(--hk-ziegel-100); color: var(--hk-neutral-800); font-size: 16px;
 }
+.tipp p { margin: 0 0 4px; }
+/* Änderung am Zuschnitt in einer Spalte, damit Minus und Plus untereinander stehen */
+.aufgehen { margin: 0; padding: 0; list-style: none; }
+.aufgehen li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 2px 0; }
+.aufgehen b { min-width: 76px; font-size: 18px; font-variant-numeric: tabular-nums; color: var(--hk-navy-900); }
+.aufgehen em {
+  padding: 1px 8px; border-radius: 999px; background: var(--hk-erfolg-100);
+  color: #1F5C39; font-size: 13px; font-style: normal; font-weight: 600;
+}
 
 .breiten { border: 0; margin: 14px 0 0; padding: 0; min-width: 0; }
 .breiten legend { padding: 0; margin-bottom: 6px; font-size: 14px; color: var(--hk-neutral-600); }

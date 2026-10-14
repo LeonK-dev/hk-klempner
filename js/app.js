@@ -1,7 +1,7 @@
 // Eingabemaske für ein Profil: Vorlage wählen, Maße tippen, Schnitt und Zuschnitt sehen.
 
 import {
-  ABSCHLUESSE, abschlussAn, ausgerichtet, bewertung, festVon, freiesProfil, gedreht, geklappt,
+  ABSCHLUESSE, abschlussAn, aufgehen, ausgerichtet, bewertung, festVon, freiesProfil, gedreht, geklappt,
   gespiegelt, kopie, mitAbschluss, mitFest, mitNeigung, mitSchenkel, neigung, normalisiert,
   ohneSchenkel, pruefe, zahl, zuschnitt,
 } from './kern/profil.js';
@@ -121,7 +121,8 @@ function zeigeSchenkel() {
   $('schenkel').innerHTML = html;
 }
 
-// Kurzes Urteil neben der Kennzahl, darunter ein Satz und bei Bedarf eine Empfehlung
+// Kurzes Urteil neben der Kennzahl, darunter ein Satz und wie viel mm am Zuschnitt fehlen oder zu viel sind,
+// damit die Breite ganz aufgeht
 const AMPEL = {
   passt_nicht: ['Passt nicht', 'schlecht'],
   kein: ['Kein Verschnitt', 'gut'],
@@ -131,7 +132,7 @@ const AMPEL = {
   viel: ['Viel Verschnitt', 'schlecht'],
 };
 
-function zeigeVerschnitt(b) {
+function zeigeVerschnitt(b, a) {
   const ampel = $('ampel');
   const satz = $('verschnitt');
   const tipp = $('tipp');
@@ -165,11 +166,13 @@ function zeigeVerschnitt(b) {
       satz.textContent = `${streifen}. ${mm(b.rest)} mm fallen weg, das sind ${anteil}.`;
   }
 
-  if (b.empfehlung) {
-    const e = b.empfehlung;
-    const danach = e.rest === 0 ? 'ohne Verschnitt' : `mit nur ${mm(e.rest)} mm Verschnitt`;
-    tipp.textContent = `Empfehlung: Zuschnitt um ${mm(e.abzug)} mm auf ${mm(e.zuschnitt)} mm verkleinern. `
-      + `Dann werden es ${e.anzahl} Streifen ${danach}.`;
+  // Ein Streifen mehr ist die Empfehlung, wenn bewertung() sie für lohnend hält
+  if (a && (a.weniger || a.mehr)) {
+    const zeile = (o, empfohlen) => `<li><b>${o.aenderung > 0 ? '+' : '−'}${mm(Math.abs(o.aenderung))} mm</b>
+      <span>auf ${mm(o.zuschnitt)} mm · ${o.anzahl} Streifen${o.rest ? ` · ${mm(o.rest)} mm Rest` : ''}</span>
+      ${empfohlen ? '<em>Empfehlung</em>' : ''}</li>`;
+    tipp.innerHTML = `<p>So geht die Breite von ${breite} mm ganz auf:</p><ul class="aufgehen">
+      ${a.weniger ? zeile(a.weniger, !!b.empfehlung) : ''}${a.mehr ? zeile(a.mehr, false) : ''}</ul>`;
     tipp.hidden = false;
   }
 }
@@ -179,7 +182,7 @@ function zeigeErgebnis() {
   const z = zuschnitt(profil);
   $('zuschnitt').textContent = mm(z);
 
-  zeigeVerschnitt(bewertung(z, breite));
+  zeigeVerschnitt(bewertung(z, breite), aufgehen(z, breite));
 
   const hinweise = pruefe(profil);
   $('hinweise').innerHTML = '';

@@ -1,7 +1,7 @@
 // Tests für Profil und Vorlagen. Laufen im Browser (tests/index.html) und mit Node (tests/lauf.mjs).
 
 import {
-  abschlussAn, ausgerichtet, bewertung, freiesProfil, gedreht, geklappt, gespiegelt, mitAbschluss,
+  abschlussAn, aufgehen, ausgerichtet, bewertung, freiesProfil, gedreht, geklappt, gespiegelt, mitAbschluss,
   mitFest, mitNeigung, mitSchenkel, neigung, normalisiert, ohneSchenkel, pruefe, richtung,
   schneidetSich, teiler, verlauf, zahl, zuschnitt,
 } from '../js/kern/profil.js';
@@ -161,6 +161,39 @@ test('Bewertung: keine Empfehlung, wenn dafür zu viel gekürzt werden müsste',
   const b = bewertung(450, 1000);
   gleich(b.stufe, 'viel');
   gleich(b.empfehlung, null);
+});
+
+// --- Breite ganz aufbrauchen ---
+
+test('Aufgehen: 340 in 1000 mit 7 mm weniger für 3 Streifen oder 160 mm mehr für 2', () => {
+  const a = aufgehen(340, 1000);
+  gleich(a.weniger.aenderung, -7);
+  gleich(a.weniger.zuschnitt, 333);
+  gleich(a.weniger.anzahl, 3);
+  gleich(a.weniger.rest, 1);
+  gleich(a.mehr.aenderung, 160);
+  gleich(a.mehr.zuschnitt, 500);
+  gleich(a.mehr.anzahl, 2);
+  gleich(a.mehr.rest, 0);
+});
+
+test('Aufgehen: nichts zu ändern, wenn die Breite schon aufgeht', () => {
+  gleich(aufgehen(250, 1000), null);
+  gleich(aufgehen(333, 1000), null); // 1 mm Rest geht mit ganzen mm nicht besser
+});
+
+test('Aufgehen: zu breiter Zuschnitt muss auf die Breite kommen', () => {
+  const a = aufgehen(1100, 1000);
+  gleich(a.weniger.aenderung, -100);
+  gleich(a.weniger.anzahl, 1);
+  gleich(a.mehr, null);
+});
+
+test('Aufgehen: Kommamaße', () => {
+  const a = aufgehen(245.5, 1000);
+  gleich(a.weniger.aenderung, -45.5);
+  gleich(a.mehr.aenderung, 4.5);
+  gleich(a.mehr.zuschnitt, 250);
 });
 
 // --- Lage des ersten Schenkels ---

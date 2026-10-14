@@ -217,6 +217,23 @@ export function bewertung(z, breite) {
   return { stufe, anzahl: t.anzahl, rest: t.rest, prozent, empfehlung };
 }
 
+/**
+ * Um wie viel mm sich der Zuschnitt ändern müsste, damit die Breite ganz aufgeht (Wunsch von Leon, 14.10.2026).
+ * weniger: ein Streifen mehr, mehr: gleich viele Streifen, nur breiter. Auf ganze mm gerechnet, der Rest
+ * danach ist kleiner als die Zahl der Streifen. null, wenn die Breite schon so gut aufgeht, wie es geht.
+ */
+export function aufgehen(z, breite) {
+  const t = teiler(z, breite);
+  if (!t || (t.anzahl > 0 && t.rest < t.anzahl)) return null;
+  const mit = (anzahl) => {
+    const neu = Math.floor(breite / anzahl);
+    return { zuschnitt: neu, aenderung: runde(neu - z), anzahl, rest: runde(breite - anzahl * neu) };
+  };
+  const weniger = mit(t.anzahl + 1);
+  const mehr = t.anzahl > 0 ? mit(t.anzahl) : null;
+  return { weniger: weniger.aenderung < 0 ? weniger : null, mehr: mehr && mehr.aenderung > 0 ? mehr : null };
+}
+
 function kreuzt(a, b, c, d) {
   const o = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
   const e = 1e-6;
