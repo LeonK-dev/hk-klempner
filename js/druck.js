@@ -202,18 +202,34 @@ export function baueDruck(ziel, { kopf, positionen, formateAus, preise, farbeFue
     stil.id = 'druck-seite';
     document.head.append(stil);
   }
-  const fuss = ['Hein & Knott Bedachungen · Zuschnittliste', kopf.bauvorhaben, heute()].filter(Boolean).join(' · ')
-    .replace(/["\\\n\r]/g, ' ');
-  stil.textContent = `@page { @bottom-left { content: "${fuss}"; } @bottom-right { content: "Seite " counter(page) " von " counter(pages); } }`;
+  stil.textContent = `@page { @bottom-left { content: "${fusszeile(kopf).replace(/["\\]/g, ' ')}"; } `
+    + '@bottom-right { content: "Seite " counter(page) " von " counter(pages); } }';
+}
+
+/** Linker Teil der Fußzeile, für Druck und PDF gleich */
+export const fusszeile = (kopf) => ['Hein & Knott Bedachungen · Zuschnittliste', kopf.bauvorhaben, heute()]
+  .filter(Boolean).join(' · ').replace(/[\n\r]/g, ' ');
+
+/** "Zuschnittliste Musterstraße 1 2026-10-14.pdf", ohne Zeichen, die ein Dateisystem nicht mag */
+export function dateiname(kopf) {
+  const d = new Date();
+  const tag = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const bv = (kopf.bauvorhaben || '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+  return `Zuschnittliste ${bv ? `${bv} ` : ''}${tag}.pdf`;
+}
+
+/** Wartet auf die Hausschriften. Ohne sie nimmt der Browser Ersatzschriften. */
+export async function schriftenLaden() {
+  try {
+    await Promise.all(SCHRIFTEN.map((s) => document.fonts.load(s)));
+  } catch {
+    // weiter mit Ersatzschriften
+  }
 }
 
 /** Baut das Druckblatt und öffnet den Druckdialog. */
 export async function drucke(daten) {
   baueDruck(document.getElementById('druck'), daten);
-  try {
-    await Promise.all(SCHRIFTEN.map((s) => document.fonts.load(s)));
-  } catch {
-    // ohne die Hausschriften druckt der Browser mit Ersatzschriften
-  }
+  await schriftenLaden();
   window.print();
 }

@@ -400,6 +400,9 @@ h2.erste { margin-top: 0; }
 /* --- Druckblatt (js/druck.js): A4 hoch, Maße in mm und pt wie beim Aufmaßblatt --- */
 
 #druck { display: none; }
+/* Arbeitsfläche für das PDF (js/pdf.js): gerechnet wie die Druckseite, aber außerhalb des Bildschirms */
+.pdf-arbeit { position: fixed; left: -10000px; top: 0; width: 182mm; background: #FFFFFF; }
+.pdf-seite { width: 182mm; height: 272mm; overflow: hidden; background: #FFFFFF; }
 
 @page {
   size: A4 portrait;

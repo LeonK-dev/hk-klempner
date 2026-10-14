@@ -8,6 +8,7 @@ import { alterInTagen, kosten, lesePreise } from './kern/preise.js';
 import { kopie, normalisiert, zahl, zuschnitt } from './kern/profil.js';
 import { gleicheZusammen } from './kern/zuschnittplan.js';
 import { drucke } from './druck.js';
+import { erstellePdf, gibWeiter } from './pdf.js';
 import {
   bedarfText, blechName, datum, dez, esc, euro, kostenHtml, mm, stueckText, urteil, verbrauchText,
 } from './format.js';
@@ -66,12 +67,17 @@ function lade() {
 export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
   let auftrag = lade();
   let preise = ladePreise();
+  let fertigesPdf = null; // wartet auf ein zweites Tippen zum Teilen, siehe unten
 
   const sichere = () => {
     try {
       localStorage.setItem(SPEICHER, JSON.stringify(auftrag));
     } catch {
       // ohne Speicher läuft das Tool weiter, der Auftrag ist dann nach dem Schließen weg
+    }
+    if (fertigesPdf) { // ein schon erstelltes PDF passt nicht mehr zum Auftrag
+      fertigesPdf = null;
+      $('pdf').textContent = 'PDF';
     }
     beiAenderung();
   };
@@ -122,6 +128,7 @@ export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
     $('auftrag-leer').hidden = auftrag.positionen.length > 0;
     $('auftrag-leeren').hidden = auftrag.positionen.length === 0;
     $('drucken').hidden = auftrag.positionen.length === 0;
+    $('pdf').hidden = auftrag.positionen.length === 0;
   }
 
   // --- Pläne ---
@@ -368,16 +375,48 @@ export function erstelleAuftrag({ beiBearbeiten, beiAenderung }) {
     if (offen) offen.closest('details').open = true; // die Liste soll beim Abhaken offen bleiben
   });
 
+  const druckDaten = () => ({
+    kopf: auftrag.kopf,
+    positionen: auftrag.positionen,
+    formateAus: auftrag.formateAus,
+    preise: preise && $('druck-preise').checked ? preise : null,
+    farbeFuer,
+  });
+
   $('drucken').addEventListener('click', async () => {
-    const mitPreisen = Boolean(preise) && $('druck-preise').checked;
-    await drucke({
-      kopf: auftrag.kopf,
-      positionen: auftrag.positionen,
-      formateAus: auftrag.formateAus,
-      preise: mitPreisen ? preise : null,
-      farbeFuer,
-    });
+    await drucke(druckDaten());
     $('druck-preise').checked = false; // beim nächsten Mal wieder ohne Preise, damit nichts versehentlich in die Werkstatt geht
+  });
+
+  // PDF ohne Druckdialog. Safari lässt das Teilen-Menü nur kurz nach dem Tippen zu. Dauert das Erstellen
+  // länger, wartet das fertige PDF auf ein zweites Tippen.
+  $('pdf').addEventListener('click', async () => {
+    const knopf = $('pdf');
+    const fehler = $('pdf-fehler');
+    fehler.hidden = true;
+    if (!fertigesPdf) {
+      knopf.disabled = true;
+      try {
+        fertigesPdf = await erstellePdf(druckDaten(), (text) => { knopf.textContent = text; });
+      } catch (e) {
+        fehler.textContent = e.message === 'offline'
+          ? 'Für das PDF braucht das Tool Internet. Ohne Netz geht „Drucken“ und dort „Als PDF sichern“.'
+          : `Das PDF ließ sich nicht erstellen (${e.message}). „Drucken“ geht weiterhin.`;
+        fehler.hidden = false;
+        knopf.textContent = 'PDF';
+        knopf.disabled = false;
+        return;
+      }
+      $('druck-preise').checked = false;
+      knopf.disabled = false;
+    }
+    const ergebnis = await gibWeiter(fertigesPdf);
+    if (ergebnis === 'tippen') {
+      knopf.textContent = 'PDF ist fertig – teilen';
+      return;
+    }
+    fertigesPdf = null;
+    knopf.textContent = 'PDF';
   });
 
   $('auftrag-leeren').addEventListener('click', () => {

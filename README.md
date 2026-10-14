@@ -26,6 +26,10 @@ Ohne Preisdatei zeigt das Tool Fläche und Gewicht.
 Im Reiter „Auftrag“ druckt „Drucken“ die Zuschnittliste mit den Schnittplänen und danach die
 Profile als Streifen, links die Zeichnung, rechts Zuschnitt und Kantfolge, meist vier je Seite (A4 hoch). Zur Durchsicht ohne Drucker: `tests/druck.html` über den Server öffnen.
 
+„PDF“ daneben macht aus demselben Druckblatt direkt eine PDF-Datei, ohne Druckdialog. Am Handy öffnet
+sich danach das Teilen-Menü, am PC wird die Datei heruntergeladen. Dafür lädt das Tool beim ersten Mal
+html2canvas und jsPDF von cdnjs nach, das geht nur mit Internet.
+
 ## Tests
 
 Im Browser `tests/index.html` über den Server öffnen, oder mit Node.js:
