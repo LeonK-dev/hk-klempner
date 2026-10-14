@@ -220,6 +220,12 @@ select:focus-visible, input:focus-visible, button:focus-visible {
 .lage .feld input { width: 74px; font-weight: 400; }
 .lage .feld .einheit { min-width: 0; }
 .hilfe.klein { margin: 8px 0 0; font-size: 14px; }
+/* Grenzwerte zur gewählten Vorlage */
+.hilfe.regel {
+  margin: 10px 0 0; padding: 8px 10px; border-left: 3px solid var(--hk-navy-700);
+  background: var(--hk-neutral-50); font-size: 14px; line-height: 1.45;
+}
+.hilfe.regel[hidden] { display: none; }
 
 .schenkel, .kantung { display: flex; align-items: center; gap: 10px; min-height: 54px; }
 .kantung { padding-left: 42px; }

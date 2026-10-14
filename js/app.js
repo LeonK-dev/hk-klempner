@@ -5,7 +5,7 @@ import {
   gespiegelt, kopie, mitAbschluss, mitFest, mitNeigung, mitSchenkel, neigung, normalisiert,
   ohneSchenkel, pruefe, zahl, zuschnitt,
 } from './kern/profil.js';
-import { VORLAGEN, ausVorlage } from './kern/vorlagen.js';
+import { VORLAGEN, ausVorlage, regelZu } from './kern/vorlagen.js';
 import { planeKantfolge } from './kern/kantfolge.js';
 import { erstelleAuftrag } from './auftrag-ansicht.js';
 import {
@@ -76,6 +76,10 @@ function zeigeVorlagen() {
   const eigenIndex = eigene.findIndex((p) => p.name === profil.name);
   auswahl.value = eigenIndex >= 0 ? `e:${eigenIndex}` : profil.vorlage ? `v:${profil.vorlage}` : '';
   $('loeschen').hidden = eigenIndex < 0;
+  // Grenzwerte aus den Regeln zur Vorlage, auch wenn das Profil schon abgeändert ist
+  const regel = regelZu(profil.vorlage);
+  $('vorlage-regel').textContent = regel ? `Regeln: ${regel}` : '';
+  $('vorlage-regel').hidden = !regel;
 }
 
 function zeigeAbschluesse() {

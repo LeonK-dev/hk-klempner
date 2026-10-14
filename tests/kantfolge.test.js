@@ -30,14 +30,14 @@ test('Kantfolge: Winkel 50/50 in einem Schritt, 50 mm Anschlag', () => {
   gleich(schritte[0].vorher, '');
 });
 
-test('Kantfolge: Traufblech erst Umschlag, dann 60°, ohne Umlegen', () => {
+test('Kantfolge: Traufblech erst Umschlag, dann 55°, ohne Umlegen', () => {
   const r = planeKantfolge(vorlage('traufblech'));
   gleich(r.umlegen, 0);
   gleich(r.schritte[0].kantung, 0);
   gleich(r.schritte[0].umschlag, true);
   gleich(r.schritte[0].anschlag, 240, 'Zuschnitt 250 minus Umschlag 10');
-  gleich(r.schritte[1].biegewinkel, 60);
-  gleich(r.schritte[1].anschlag, 170);
+  gleich(r.schritte[1].biegewinkel, 55);
+  gleich(r.schritte[1].anschlag, 190);
   gleich(r.schritte[1].seite, r.schritte[0].seite);
 });
 

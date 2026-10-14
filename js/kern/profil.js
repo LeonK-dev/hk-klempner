@@ -18,7 +18,7 @@ const TIPP_BIS = 20; // mm, bis zu diesem Abzug lohnt der Hinweis auf einen Stre
 // seite: +1 kantet zur Sichtseite hin, -1 von ihr weg
 export const ABSCHLUESSE = {
   umschlag_zu: { name: 'Umschlag zugedrückt', l: 10, w: 0, seite: -1 },
-  umschlag_offen: { name: 'Umschlag offen / Wasserfalz', l: 10, w: 20, seite: -1 },
+  umschlag_offen: { name: 'Umschlag offen / Wasserfalz', l: 15, w: 20, seite: -1 }, // Wasserfalz ≥ 15 mm nach Fachregel
   tropfkante: { name: 'Tropfkante', l: 20, w: 135, seite: 1 },
   rueckkantung: { name: 'Rückkantung', l: 15, w: 45, seite: -1 },
 };

@@ -14,10 +14,13 @@ const ende = (p) => verlauf(p, 0).punkte.at(-1);
 // --- Zuschnitt ---
 
 const SOLL_ZUSCHNITT = {
-  traufblech: 250, rinneneinhang: 333, ortgangblech: 200, lueftungsblech: 100,
-  wandanschluss: 285, kaminanschluss: 333, kappleiste: 100, firstblech: 400,
-  pultabschluss: 400, kehle: 500, mauerabdeckung: 500, fensterbank: 250,
-  vorstoss: 167, haftstreifen: 100, winkel: 100, 'z-winkel': 110,
+  traufblech: 250, tropfblech: 167, rinneneinhang: 250, 'rinneneinhang-wf': 250, ortgangblech: 200,
+  'ortblech-wf': 200, lueftungsblech: 95,
+  wandanschluss: 333, kaminanschluss: 333, 'kamin-brustblech': 333, 'kamin-nackenkehle': 400,
+  kappleiste: 100, ueberhangstreifen: 125, firstblech: 400, pultabschluss: 400, kehle: 500,
+  mauerabdeckung: 500, fensterbank: 333, vorstoss: 167, haftstreifen: 100, winkel: 100, 'z-winkel': 110,
+  'traufblech-flachdach': 250, dachrandwinkel: 200, 'wandanschluss-flachdach': 250,
+  'wandanschluss-klebeflansch': 333, kehlwinkel: 100, kiesleiste: 180,
   'schar-doppelstehfalz': 670, 'schar-winkelstehfalz': 670,
   'schar-leistendeckung': 600, 'schar-aufkantung': 670,
 };
@@ -55,13 +58,14 @@ test('Zugedrückter Umschlag läuft auf dem Schenkel zurück', () => {
   const { punkte } = verlauf(vorlage('traufblech'), 0);
   gleich(punkte[1].y, -10, 'Umschlag unten');
   gleich(punkte[2].x, 0, 'Blende x');
-  gleich(punkte[2].y, 60, 'Blende oben');
+  gleich(punkte[2].y, 40, 'Blende oben');
 });
 
-test('Innenwinkel 120 kantet um 60 Grad', () => {
+test('Innenwinkel 125 kantet um 55 Grad', () => {
   const { punkte } = verlauf(vorlage('traufblech'), 0);
-  gleich(punkte[3].x, -170 * Math.cos(Math.PI / 6), 'Auflage x');
-  gleich(punkte[3].y, 60 + 170 * Math.sin(Math.PI / 6), 'Auflage y');
+  const grad35 = (35 * Math.PI) / 180;
+  gleich(punkte[3].x, -190 * Math.cos(grad35), 'Auflage x');
+  gleich(punkte[3].y, 40 + 190 * Math.sin(grad35), 'Auflage y');
 });
 
 test('Spalt zieht den zugedrückten Umschlag sichtbar auseinander', () => {
@@ -209,8 +213,8 @@ const punkteGleich = (a, b) => {
 test('Vorlagen: fest ist der längste Schenkel', () => {
   const p = vorlage('traufblech');
   gleich(p.fest, 2);
-  gleich(richtung(p, 2), 150);
-  gleich(neigung(p), -30, 'Auflage fällt nach rechts');
+  gleich(richtung(p, 2), 145);
+  gleich(neigung(p), -35, 'Auflage fällt nach rechts');
   gleich(vorlage('mauerabdeckung').fest, 2);
   gleich(neigung(vorlage('mauerabdeckung')), 0);
 });
@@ -256,10 +260,10 @@ test('Schenkel bei A anfügen und umklappen lässt den festen Schenkel stehen', 
 test('Winkel vor dem festen Schenkel ändern bewegt nur den Teil davor', () => {
   const p = vorlage('traufblech');
   p.kantungen[1].w = 100;
-  gleich(richtung(p, 2), 150, 'Auflage bleibt');
-  gleich(richtung(p, 1), 70, 'Blende dreht sich');
+  gleich(richtung(p, 2), 145, 'Auflage bleibt');
+  gleich(richtung(p, 1), 65, 'Blende dreht sich');
   p.kantungen[1].w = NaN; // beim Tippen
-  gleich(richtung(p, 2), 150, 'auch bei ungültiger Eingabe');
+  gleich(richtung(p, 2), 145, 'auch bei ungültiger Eingabe');
 });
 
 test('Anderen Schenkel festhalten ändert die Zeichnung nicht', () => {
@@ -274,7 +278,7 @@ test('Schenkel entfernen: der feste bleibt, sonst übernimmt der Nachbar', () =>
   const p = vorlage('traufblech'); // fest = 2
   let q = ohneSchenkel(p, 0);
   gleich(q.fest, 1);
-  gleich(richtung(q, 1), 150);
+  gleich(richtung(q, 1), 145);
   q = ohneSchenkel(p, 2); // der feste selbst
   gleich(q.fest, 1);
   gleich(richtung(q, 1), 90, 'Blende behält ihre Richtung');

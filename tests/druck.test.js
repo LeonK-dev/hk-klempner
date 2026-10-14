@@ -8,7 +8,7 @@ import { gleich, test } from './hilfe.js';
 const vorlage = (id) => ausVorlage(VORLAGEN.find((v) => v.id === id));
 
 test('Druck: Schenkel von A nach E, der übliche Winkel am Kantenabschluss steckt im Namen', () => {
-  gleich(folge(vorlage('traufblech')), 'Umschlag zugedrückt 10 · 70 · 120° · 170');
+  gleich(folge(vorlage('traufblech')), 'Umschlag zugedrückt 10 · 50 · 125° · 190');
   gleich(folge(vorlage('ortgangblech')), 'Tropfkante 20 · 110 · 90° · 70');
 });
 
