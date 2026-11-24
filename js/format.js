@@ -14,7 +14,7 @@ export const datum = (iso) => {
   return m ? `${m[3]}.${m[2]}.${m[1]}` : '';
 };
 
-/** "5,22 €/kg, Rechnung Vollmar 7501010143 vom 16.06.2026" */
+/** "4,80 €/kg, Rechnung Musterhandel 1234567890 vom 01.01.2026" (Beispiel, erfunden) */
 export function preisText(e) {
   const betrag = `${e.preis.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/${e.einheit}`;
   const tag = datum(e.datum);
